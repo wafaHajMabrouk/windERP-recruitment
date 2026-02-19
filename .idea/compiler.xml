@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="api-gateway" />
         <module name="candidate-service" />
+        <module name="interview-service" />
         <module name="eureka-server" />
       </profile>
     </annotationProcessing>
@@ -17,6 +18,7 @@
       <module name="api-gateway" options="-parameters" />
       <module name="candidate-service" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
+      <module name="interview-service" options="-parameters" />
       <module name="recrute" options="-parameters" />
     </option>
   </component>

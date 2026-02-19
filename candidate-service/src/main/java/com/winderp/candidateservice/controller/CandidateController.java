@@ -57,4 +57,10 @@ public class CandidateController {
         Candidate candidate = candidateService.findByEmail(email);
         return ResponseEntity.ok(candidate);
     }
+
+    // ================= CHECK IF EXISTS (pour Feign) =================
+    @GetMapping("/exists/{id}")
+    public boolean existsById(@PathVariable Long id) {
+        return candidateService.existsById(id);
+    }
 }

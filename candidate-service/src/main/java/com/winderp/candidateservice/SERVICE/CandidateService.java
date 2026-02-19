@@ -56,4 +56,9 @@ public class CandidateService {
         return repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Candidate not found with email: " + email));
     }
+
+    // ================= CHECK IF EXISTS =================
+    public boolean existsById(Long id) {
+        return repository.existsById(id);
+    }
 }

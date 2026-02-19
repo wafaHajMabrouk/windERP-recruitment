@@ -1,6 +1,5 @@
 package com.winderp.candidateservice.SERVICE;
 
-
 import com.winderp.candidateservice.Models.Recruteur;
 import com.winderp.candidateservice.Repository.RecruteurRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +37,9 @@ public class RecruteurService {
     public void delete(Long id) {
         recruteurRepository.deleteById(id);
     }
-}
 
+    // ========================== NOUVELLE METHODE ==========================
+    public boolean existsById(Long id) {
+        return recruteurRepository.existsById(id);
+    }
+}
