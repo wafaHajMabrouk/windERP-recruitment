@@ -1,9 +1,9 @@
 package com.winderp.candidateservice.Models;
 
-
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import lombok.*;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,17 +15,16 @@ public class Candidature {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "candidate_id")
-    private Candidate candidate;
+    // 🔹 Candidate vient du auth-service → seulement ID
+    @Column(nullable = false)
+    private Long candidateId;
 
+    // 🔹 Offre est dans le même microservice → relation JPA OK
     @ManyToOne
-    @JoinColumn(name = "offre_id")
+    @JoinColumn(name = "offre_id", nullable = false)
     private Offre offre;
 
     private LocalDate dateCandidature;
 
-    private String statut; // ex: "en attente", "accepté", "refusé"
-
-    // Getters et setters
+    private String statut; // EN_ATTENTE, ACCEPTE, REFUSE
 }

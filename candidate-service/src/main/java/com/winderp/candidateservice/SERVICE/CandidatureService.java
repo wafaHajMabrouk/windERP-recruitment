@@ -1,42 +1,44 @@
 package com.winderp.candidateservice.SERVICE;
 
+import com.winderp.candidateservice.Client.CandidateClient;
 import com.winderp.candidateservice.Models.Candidature;
-import com.winderp.candidateservice.Models.Candidate;
 import com.winderp.candidateservice.Models.Offre;
 import com.winderp.candidateservice.Repository.CandidatureRepository;
-import com.winderp.candidateservice.Repository.CandidateRepository;
 import com.winderp.candidateservice.Repository.OffreRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CandidatureService {
 
     private final CandidatureRepository candidatureRepository;
-    private final CandidateRepository candidateRepository;
+    private final CandidateClient candidateClient; // Feign client pour auth-service
     private final OffreRepository offreRepository;
-
-    public CandidatureService(CandidatureRepository candidatureRepository,
-                              CandidateRepository candidateRepository,
-                              OffreRepository offreRepository) {
-        this.candidatureRepository = candidatureRepository;
-        this.candidateRepository = candidateRepository;
-        this.offreRepository = offreRepository;
-    }
 
     // ================= CREATE =================
     public Candidature save(Candidature candidature) {
-        // Vérifier et récupérer le candidat existant
-        Candidate candidate = candidateRepository.findById(candidature.getCandidate().getId())
-                .orElseThrow(() -> new RuntimeException("Candidate not found"));
+        // Vérifier existence du candidat via auth-service
+        Map<String, Object> candidateData = candidateClient.getUserById(candidature.getCandidateId());
+        if (candidateData == null || candidateData.isEmpty()) {
+            throw new RuntimeException("Candidate not found with id " + candidature.getCandidateId());
+        }
 
-        // Vérifier et récupérer l'offre existante
+        // Vérifier existence de l'offre locale
         Offre offre = offreRepository.findById(candidature.getOffre().getId())
-                .orElseThrow(() -> new RuntimeException("Offre not found"));
+                .orElseThrow(() -> new RuntimeException("Offre not found with id " + candidature.getOffre().getId()));
 
-        // Lier les entités existantes à la candidature
-        candidature.setCandidate(candidate);
         candidature.setOffre(offre);
+
+        // Définir la date de candidature si non fournie
+        if (candidature.getDateCandidature() == null) {
+            candidature.setDateCandidature(LocalDate.now());
+        }
 
         return candidatureRepository.save(candidature);
     }
@@ -44,6 +46,10 @@ public class CandidatureService {
     // ================= READ =================
     public List<Candidature> getAll() {
         return candidatureRepository.findAll();
+    }
+
+    public Optional<Candidature> getById(Long id) {
+        return candidatureRepository.findById(id);
     }
 
     public List<Candidature> getByCandidateId(Long candidateId) {
@@ -54,8 +60,19 @@ public class CandidatureService {
         return candidatureRepository.findByOffreId(offreId);
     }
 
-    // ================= CHECK EXISTS =================
+    // ================= CHECK =================
     public boolean existsById(Long id) {
         return candidatureRepository.existsById(id);
+    }
+
+    // ================= DELETE =================
+    public void deleteById(Long id) {
+        if (!existsById(id)) {
+            throw new RuntimeException("Candidature not found with id " + id);
+        }
+        candidatureRepository.deleteById(id);
+    }
+    public long count() {
+        return candidatureRepository.count();
     }
 }

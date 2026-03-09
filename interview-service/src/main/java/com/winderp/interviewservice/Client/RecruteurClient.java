@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
-        name = "CANDIDATE-SERVICE",
+        name = "auth-service",
         contextId = "recruteurClient"
 )// <-- nom exact du microservice Recruteur/Candidate dans Eureka
 public interface RecruteurClient {

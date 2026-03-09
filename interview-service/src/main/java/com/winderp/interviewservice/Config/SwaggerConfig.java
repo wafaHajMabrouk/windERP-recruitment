@@ -1,4 +1,5 @@
 package com.winderp.interviewservice.Config;
+
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +11,7 @@ public class SwaggerConfig {
     public GroupedOpenApi interviewApi() {
         return GroupedOpenApi.builder()
                 .group("interview-api")
-                .pathsToMatch("/interviews/**")
+                .pathsToMatch("/api/interviews/**")
                 .build();
     }
 }

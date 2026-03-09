@@ -14,15 +14,14 @@ public class CV {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nomFichier; // nom du CV ou path
+    private String nomFichier;
 
-    // Relation vers Candidate
-    @ManyToOne
-    @JoinColumn(name = "candidate_id")
-    private Candidate candidate;
+    // 🔹 Candidate vient du auth-service → seulement ID
+    @Column(nullable = false)
+    private Long candidateId;
 
-    // Relation vers Offre
+    // 🔹 Offre est dans le même microservice → relation JPA OK
     @ManyToOne
-    @JoinColumn(name = "offre_id")
+    @JoinColumn(name = "offre_id", nullable = false)
     private Offre offre;
 }

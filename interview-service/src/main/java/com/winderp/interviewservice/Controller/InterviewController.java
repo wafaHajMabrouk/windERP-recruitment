@@ -2,6 +2,7 @@ package com.winderp.interviewservice.Controller;
 
 import com.winderp.interviewservice.Models.Interview;
 import com.winderp.interviewservice.Service.InterviewService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,14 +11,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/interviews")
+@RequiredArgsConstructor
 public class InterviewController {
 
     private final InterviewService interviewService;
 
-    public InterviewController(InterviewService interviewService) {
-        this.interviewService = interviewService;
-    }
-
+    // ================= CREATE =================
     @PostMapping
     public ResponseEntity<?> createInterview(@RequestBody Interview interview) {
         try {
@@ -28,25 +27,43 @@ public class InterviewController {
         }
     }
 
+    // ================= READ ALL =================
     @GetMapping
     public ResponseEntity<List<Interview>> getAllInterviews() {
         return ResponseEntity.ok(interviewService.getAll());
     }
 
+    // ================= READ BY ID =================
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getInterviewById(@PathVariable Long id) {
+        Interview interview = interviewService.getById(id);
+        if (interview == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Interview non trouvée avec ID: " + id);
+        }
+        return ResponseEntity.ok(interview);
+    }
+
+    // ================= READ BY CANDIDATURE =================
     @GetMapping("/candidature/{candidatureId}")
     public ResponseEntity<List<Interview>> getByCandidature(@PathVariable Long candidatureId) {
         return ResponseEntity.ok(interviewService.getByCandidatureId(candidatureId));
     }
 
+    // ================= READ BY RECRUTEUR =================
     @GetMapping("/recruteur/{recruteurId}")
     public ResponseEntity<List<Interview>> getByRecruteur(@PathVariable Long recruteurId) {
         return ResponseEntity.ok(interviewService.getByRecruteurId(recruteurId));
     }
 
+    // ================= DELETE =================
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteInterview(@PathVariable Long id) {
         boolean deleted = interviewService.deleteInterviewById(id);
         if (deleted) return ResponseEntity.noContent().build();
         else return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Interview non trouvée avec ID: " + id);
+    }
+    @GetMapping("/count")
+    public ResponseEntity<Long> getTotalInterviews() {
+        return ResponseEntity.ok(interviewService.count());
     }
 }
