@@ -15,42 +15,43 @@ public class RHService {
     private final RHRepository rhRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ================= CREATE =================
-    public RH createRH(RH rh) {
-        // Encoder le mot de passe avant sauvegarde
+    // CREATE
+    public RH create(RH rh) {
         rh.setPassword(passwordEncoder.encode(rh.getPassword()));
         return rhRepository.save(rh);
     }
 
-    // ================= READ ALL =================
-    public List<RH> getAllRH() {
+    // READ ALL
+    public List<RH> getAll() {
         return rhRepository.findAll();
     }
 
-    // ================= READ BY ID =================
-    public RH getRHById(Long id) {
+    // READ BY ID
+    public RH getById(Long id) {
         return rhRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("RH not found"));
+                .orElseThrow(() -> new RuntimeException("RH not found with id: " + id));
     }
 
-    // ================= UPDATE =================
-    public RH updateRH(Long id, RH rhDetails) {
-        RH rh = getRHById(id);
-        if (rhDetails.getNom() != null) rh.setNom(rhDetails.getNom());
-        if (rhDetails.getEmail() != null) rh.setEmail(rhDetails.getEmail());
-        if (rhDetails.getTelephone() != null) rh.setTelephone(rhDetails.getTelephone());
-        if (rhDetails.getPassword() != null && !rhDetails.getPassword().isEmpty()) {
-            rh.setPassword(passwordEncoder.encode(rhDetails.getPassword()));
+    // UPDATE
+    public RH update(Long id, RH data) {
+        RH rh = getById(id);
+        if (data.getNom() != null) rh.setNom(data.getNom());
+        if (data.getEmail() != null) rh.setEmail(data.getEmail());
+
+        if (data.getDepartement() != null) rh.setDepartement(data.getDepartement());
+        if (data.getNiveauResponsabilite() != null) rh.setNiveauResponsabilite(data.getNiveauResponsabilite());
+        if (data.getPassword() != null && !data.getPassword().isEmpty()) {
+            rh.setPassword(passwordEncoder.encode(data.getPassword()));
         }
         return rhRepository.save(rh);
     }
 
-    // ================= DELETE =================
-    public void deleteRH(Long id) {
+    // DELETE
+    public void delete(Long id) {
         rhRepository.deleteById(id);
     }
 
-    // ================= EXISTS BY ID =================
+    // EXISTS
     public boolean existsById(Long id) {
         return rhRepository.existsById(id);
     }

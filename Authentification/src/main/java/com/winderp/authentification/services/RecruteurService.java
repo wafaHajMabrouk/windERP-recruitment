@@ -28,23 +28,24 @@ public class RecruteurService {
     }
 
     // READ BY ID
-    public Optional<Recruteur> getById(Long id) {
-        return recruteurRepository.findById(id);
+    public Recruteur getById(Long id) {
+        return recruteurRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Recruteur not found with id: " + id));
     }
 
     // UPDATE
-    public Recruteur update(Long id, Recruteur recruteur) {
-        return recruteurRepository.findById(id).map(existing -> {
-            if (recruteur.getNom() != null) existing.setNom(recruteur.getNom());
-            if (recruteur.getPrenom() != null) existing.setPrenom(recruteur.getPrenom());
-            if (recruteur.getEmail() != null) existing.setEmail(recruteur.getEmail());
-            if (recruteur.getTelephone() != null) existing.setTelephone(recruteur.getTelephone());
-            if (recruteur.getEntreprise() != null) existing.setEntreprise(recruteur.getEntreprise());
-            if (recruteur.getPassword() != null && !recruteur.getPassword().isEmpty()) {
-                existing.setPassword(passwordEncoder.encode(recruteur.getPassword()));
-            }
-            return recruteurRepository.save(existing);
-        }).orElse(null);
+    public Recruteur update(Long id, Recruteur data) {
+        Recruteur recruteur = getById(id);
+        if (data.getNom() != null) recruteur.setNom(data.getNom());
+        if (data.getPrenom() != null) recruteur.setPrenom(data.getPrenom());
+        if (data.getEmail() != null) recruteur.setEmail(data.getEmail());
+        if (data.getEntreprise() != null) recruteur.setEntreprise(data.getEntreprise());
+        if (data.getPoste() != null) recruteur.setPoste(data.getPoste());
+        if (data.getSiteEntreprise() != null) recruteur.setSiteEntreprise(data.getSiteEntreprise());
+        if (data.getPassword() != null && !data.getPassword().isEmpty()) {
+            recruteur.setPassword(passwordEncoder.encode(data.getPassword()));
+        }
+        return recruteurRepository.save(recruteur);
     }
 
     // DELETE
@@ -57,7 +58,7 @@ public class RecruteurService {
         return recruteurRepository.findByEmail(email);
     }
 
-    // EXISTS BY ID
+    // EXISTS
     public boolean existsById(Long id) {
         return recruteurRepository.existsById(id);
     }

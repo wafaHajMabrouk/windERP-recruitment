@@ -12,6 +12,7 @@ import lombok.*;
 @DiscriminatorValue("RH")
 public class RH extends User {
 
-    private String telephone;
+    private String departement;
+    private String niveauResponsabilite;
 
 }

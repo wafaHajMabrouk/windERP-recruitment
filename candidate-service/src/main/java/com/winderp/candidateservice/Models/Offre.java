@@ -3,11 +3,13 @@ package com.winderp.candidateservice.Models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
+@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class Offre {
 
     @Id
@@ -15,8 +17,10 @@ public class Offre {
     private Long id;
 
     private String titre;
-    private String description;
-    private String statut;         // ex: Ouvert / Fermé
-    private String localisation;   // <-- ajouté pour permettre la recherche
 
+    @Column(length = 2000)
+    private String description;
+
+    @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL)
+    private List<Candidature> candidatures;
 }

@@ -1,18 +1,22 @@
 package com.winderp.authentification.Models;
 
-import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 import lombok.*;
+import org.springframework.http.ResponseEntity;
+
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-
 @DiscriminatorValue("CANDIDATE")
-@Table(name = "candidate")
 public class Candidate extends User {
 
-    private String telephone;
     private String adresse;
+    private String niveauExperience;
+    private String competences;
+
+
 }

@@ -12,7 +12,8 @@ import lombok.*;
 @DiscriminatorValue("RECRUTEUR")
 public class Recruteur extends User {
 
-    private String telephone;
     private String entreprise;
+    private String poste;
+    private String siteEntreprise;
 
 }

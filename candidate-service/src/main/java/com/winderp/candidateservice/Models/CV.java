@@ -16,12 +16,10 @@ public class CV {
 
     private String nomFichier;
 
-    // 🔹 Candidate vient du auth-service → seulement ID
-    @Column(nullable = false)
-    private Long candidateId;
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String contenu; // Stocke le texte extrait du PDF
 
-    // 🔹 Offre est dans le même microservice → relation JPA OK
-    @ManyToOne
-    @JoinColumn(name = "offre_id", nullable = false)
-    private Offre offre;
+    @OneToOne
+    private Candidature candidature;
 }

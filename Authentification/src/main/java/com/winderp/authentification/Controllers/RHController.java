@@ -3,6 +3,7 @@ package com.winderp.authentification.Controllers;
 import com.winderp.authentification.Models.RH;
 import com.winderp.authentification.services.RHService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,31 +17,59 @@ public class RHController {
 
     private final RHService rhService;
 
+    // CREATE
     @PostMapping
-    public RH create(@RequestBody RH rh) {
-        return rhService.createRH(rh);
-    }
-
-    @GetMapping
-    public List<RH> getAll() {
-        return rhService.getAllRH();
-    }
-
-    @GetMapping("/{id}")
-    public RH getById(@PathVariable Long id) {
-        return rhService.getRHById(id);
-    }
-
-    @PutMapping("/{id}")
-    public RH update(@PathVariable Long id, @RequestBody RH rh) {
-        return rhService.updateRH(id, rh);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
-        if (!rhService.existsById(id)) {
-            return ResponseEntity.status(404).body("RH avec id " + id + " non trouvé");
+    public ResponseEntity<?> create(@RequestBody RH rh) {
+        try {
+            RH saved = rhService.create(rh);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
-        rhService.deleteRH(id);
+    }
+
+    // READ ALL
+    @GetMapping
+    public ResponseEntity<List<RH>> getAll() {
+        return ResponseEntity.ok(rhService.getAll());
+    }
+
+    // READ BY ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        try {
+            RH rh = rhService.getById(id);
+            return ResponseEntity.ok(rh);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // UPDATE
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody RH rh) {
+        try {
+            RH updated = rhService.update(id, rh);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        if (!rhService.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("RH avec id " + id + " non trouvé");
+        }
+        rhService.delete(id);
         return ResponseEntity.ok("RH avec id " + id + " supprimé avec succès");
-    }}
+    }
+
+    // EXISTS
+    @GetMapping("/exists/{id}")
+    public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
+        return ResponseEntity.ok(rhService.existsById(id));
+    }
+}

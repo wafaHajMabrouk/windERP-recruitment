@@ -29,18 +29,18 @@ public class AdminService {
     // READ BY ID
     public Admin getById(Long id) {
         return adminRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> new RuntimeException("Admin not found with id: " + id));
     }
 
     // UPDATE
     public Admin update(Long id, Admin data) {
         Admin admin = getById(id);
-        admin.setNom(data.getNom());
-        admin.setEmail(data.getEmail());
-        admin.setTelephone(data.getTelephone());
+        if (data.getNom() != null) admin.setNom(data.getNom());
+        if (data.getEmail() != null) admin.setEmail(data.getEmail());
         if (data.getPassword() != null && !data.getPassword().isEmpty()) {
             admin.setPassword(passwordEncoder.encode(data.getPassword()));
         }
+        if (data.getDepartement() != null) admin.setDepartement(data.getDepartement());
         return adminRepository.save(admin);
     }
 
@@ -49,9 +49,7 @@ public class AdminService {
         adminRepository.deleteById(id);
     }
 
-    // ===========================
-    // Vérifier si l'admin existe
-    // ===========================
+    // CHECK EXISTS
     public boolean existsById(Long id) {
         return adminRepository.existsById(id);
     }

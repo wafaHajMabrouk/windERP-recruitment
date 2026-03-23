@@ -16,53 +16,55 @@ public class CandidateService {
     private final CandidateRepository candidateRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ================= CREATE =================
+    // CREATE
     public Candidate create(Candidate candidate) {
         candidate.setPassword(passwordEncoder.encode(candidate.getPassword()));
         return candidateRepository.save(candidate);
     }
 
-    // ================= READ ALL =================
+    // READ ALL
     public List<Candidate> getAll() {
         return candidateRepository.findAll();
     }
 
-    // ================= READ BY ID =================
-    public Optional<Candidate> getById(Long id) {
-        return candidateRepository.findById(id);
+    // READ BY ID
+    public Candidate getById(Long id) {
+        return candidateRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Candidate not found with id: " + id));
     }
 
-    // ================= UPDATE =================
-    public Candidate update(Long id, Candidate candidate) {
-        return candidateRepository.findById(id).map(c -> {
-            if (candidate.getNom() != null) c.setNom(candidate.getNom());
-            if (candidate.getPrenom() != null) c.setPrenom(candidate.getPrenom());
-            if (candidate.getEmail() != null) c.setEmail(candidate.getEmail());
-            if (candidate.getPassword() != null && !candidate.getPassword().isEmpty()) {
-                c.setPassword(passwordEncoder.encode(candidate.getPassword()));
-            }
-            if (candidate.getTelephone() != null) c.setTelephone(candidate.getTelephone());
-            if (candidate.getAdresse() != null) c.setAdresse(candidate.getAdresse());
-            return candidateRepository.save(c);
-        }).orElse(null);
+    // UPDATE
+    public Candidate update(Long id, Candidate data) {
+        Candidate candidate = getById(id);
+        if (data.getNom() != null) candidate.setNom(data.getNom());
+        if (data.getPrenom() != null) candidate.setPrenom(data.getPrenom());
+        if (data.getEmail() != null) candidate.setEmail(data.getEmail());
+        if (data.getPassword() != null && !data.getPassword().isEmpty()) {
+            candidate.setPassword(passwordEncoder.encode(data.getPassword()));
+        }
+
+        if (data.getAdresse() != null) candidate.setAdresse(data.getAdresse());
+        if (data.getNiveauExperience() != null) candidate.setNiveauExperience(data.getNiveauExperience());
+        if (data.getCompetences() != null) candidate.setCompetences(data.getCompetences());
+        return candidateRepository.save(candidate);
     }
 
-    // ================= DELETE =================
+    // DELETE
     public void delete(Long id) {
         candidateRepository.deleteById(id);
     }
 
-    // ================= FIND BY EMAIL =================
+    // FIND BY EMAIL
     public Optional<Candidate> findByEmail(String email) {
         return candidateRepository.findByEmail(email);
     }
 
-    // ================= CHECK EXISTS =================
+    // EXISTS
     public boolean existsById(Long id) {
         return candidateRepository.existsById(id);
     }
 
-    // ================= COUNT =================
+    // COUNT
     public long count() {
         return candidateRepository.count();
     }

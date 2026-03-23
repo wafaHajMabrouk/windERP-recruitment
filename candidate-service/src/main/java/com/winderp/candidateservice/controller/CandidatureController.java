@@ -1,11 +1,15 @@
 package com.winderp.candidateservice.controller;
 
-import com.winderp.candidateservice.Models.Candidature;
-import com.winderp.candidateservice.SERVICE.CandidatureService;
+import com.winderp.candidateservice.Models.*;
+import com.winderp.candidateservice.SERVICE.*;
+import com.winderp.candidateservice.ai.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -14,63 +18,46 @@ import java.util.List;
 public class CandidatureController {
 
     private final CandidatureService candidatureService;
+    private final OffreService offreService;
+    private final CVService cvService;
+    private final AIService aiService;
 
-    // ================= CREATE =================
     @PostMapping
-    public ResponseEntity<Candidature> addCandidature(@RequestBody Candidature candidature) {
-        Candidature saved = candidatureService.save(candidature);
-        return ResponseEntity.ok(saved);
+    public Candidature create(@RequestBody Candidature candidature) {
+        Offre offre = offreService.getById(candidature.getOffre().getId());
+        candidature.setOffre(offre);
+        return candidatureService.create(candidature);
     }
 
-    // ================= READ ALL =================
-    @GetMapping
-    public ResponseEntity<List<Candidature>> getAllCandidatures() {
-        List<Candidature> candidatures = candidatureService.getAll();
-        return ResponseEntity.ok(candidatures);
-    }
-
-    // ================= READ BY ID =================
-    @GetMapping("/{id}")
-    public ResponseEntity<Candidature> getById(@PathVariable Long id) {
-        return candidatureService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // ================= READ BY CANDIDATE =================
-    @GetMapping("/candidate/{candidateId}")
-    public ResponseEntity<List<Candidature>> getByCandidate(@PathVariable Long candidateId) {
-        List<Candidature> candidatures = candidatureService.getByCandidateId(candidateId);
-        return ResponseEntity.ok(candidatures);
-    }
-
-    // ================= READ BY OFFRE =================
     @GetMapping("/offre/{offreId}")
-    public ResponseEntity<List<Candidature>> getByOffre(@PathVariable Long offreId) {
-        List<Candidature> candidatures = candidatureService.getByOffreId(offreId);
-        return ResponseEntity.ok(candidatures);
+    public List<Candidature> getByOffre(@PathVariable Long offreId) {
+        return candidatureService.getByOffre(offreId);
     }
 
-    // ================= CHECK IF EXISTS =================
-    @GetMapping("/exists/{id}")
-    public ResponseEntity<Boolean> exists(@PathVariable Long id) {
-        boolean exists = candidatureService.existsById(id);
-        return ResponseEntity.ok(exists);
+    @PostMapping("/{id}/cv")
+    public CV uploadCV(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
+        Candidature c = candidatureService.getById(id);
+        return cvService.uploadCVFromPDF(file, c);  // ← utilisation correcte de l'extraction PDF
     }
 
-    // ================= DELETE =================
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
-        if (!candidatureService.existsById(id)) {
-            return ResponseEntity.notFound().build();
+    @PostMapping("/{id}/analyser")
+    public AIResponse analyser(@PathVariable Long id) {
+        Candidature c = candidatureService.getById(id);
+
+        CV cv = cvService.getByCandidatureId(id);
+        if (cv == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Aucun CV associé");
         }
-        candidatureService.deleteById(id);
-        return ResponseEntity.ok("Candidature supprimée avec succès !");
 
+        String cvText = cv.getContenu();
+        if (cvText == null || cvText.trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CV vide ou extraction échouée (PDF scanné ?)");
+        }
+
+        AIResponse response = aiService.analyserCV(c.getOffre().getDescription(), cvText);
+
+        candidatureService.updateAfterAI(id, response.getScore(), response.getDecision());
+
+        return response;
     }
-    // ================= COUNT =================
-    @GetMapping("/count")
-    public ResponseEntity<Long> getTotalCandidatures() {
-        long count = candidatureService.count();
-        return ResponseEntity.ok(count);
-    }}
+}

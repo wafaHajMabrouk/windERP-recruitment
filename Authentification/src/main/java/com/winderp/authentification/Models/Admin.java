@@ -12,6 +12,6 @@ import lombok.*;
 @DiscriminatorValue("ADMIN")
 public class Admin extends User {
 
-    private String telephone;
+    private String departement;
 
 }

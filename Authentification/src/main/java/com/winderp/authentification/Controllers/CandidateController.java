@@ -17,14 +17,13 @@ public class CandidateController {
 
     private final CandidateService candidateService;
 
-    // ================= CREATE =================
+    // CREATE
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Candidate candidate) {
         if (candidate.getEmail() == null || candidate.getEmail().isEmpty()
                 || candidate.getPassword() == null || candidate.getPassword().isEmpty()) {
             return ResponseEntity.badRequest().body("Email et mot de passe obligatoires");
         }
-
         try {
             Candidate saved = candidateService.create(candidate);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
@@ -33,59 +32,61 @@ public class CandidateController {
         }
     }
 
-    // ================= READ ALL =================
+    // READ ALL
     @GetMapping
     public ResponseEntity<List<Candidate>> getAll() {
         return ResponseEntity.ok(candidateService.getAll());
     }
 
-    // ================= READ BY ID =================
+    // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<Candidate> getById(@PathVariable Long id) {
-        return candidateService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        try {
+            Candidate candidate = candidateService.getById(id);
+            return ResponseEntity.ok(candidate);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
-    // ================= UPDATE =================
+    // UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Candidate candidate) {
         try {
             Candidate updated = candidateService.update(id, candidate);
-            if (updated == null) {
-                return ResponseEntity.notFound().build();
-            }
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
-    // ================= DELETE =================
+    // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         if (!candidateService.existsById(id)) {
-            return ResponseEntity.status(404).body("Candidate avec id " + id + " non trouvée");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Candidate avec id " + id + " non trouvée");
         }
         candidateService.delete(id);
         return ResponseEntity.ok("Candidate avec id " + id + " supprimée avec succès");
     }
 
-    // ================= SEARCH BY EMAIL =================
+    // SEARCH BY EMAIL
     @GetMapping("/search")
-    public ResponseEntity<Candidate> getByEmail(@RequestParam String email) {
+    public ResponseEntity<?> getByEmail(@RequestParam String email) {
         return candidateService.findByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Candidate non trouvée"));
     }
 
-    // ================= CHECK EXISTS =================
+    // EXISTS
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(candidateService.existsById(id));
     }
 
-    // ================= COUNT =================
+    // COUNT
     @GetMapping("/count")
     public ResponseEntity<Long> count() {
         return ResponseEntity.ok(candidateService.count());

@@ -19,10 +19,13 @@ public class RecruteurController {
 
     // CREATE
     @PostMapping
-    public ResponseEntity<Recruteur> create(@RequestBody Recruteur recruteur) {
-
-        Recruteur saved = recruteurService.create(recruteur);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    public ResponseEntity<?> create(@RequestBody Recruteur recruteur) {
+        try {
+            Recruteur saved = recruteurService.create(recruteur);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     // READ ALL
@@ -33,24 +36,32 @@ public class RecruteurController {
 
     // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<Recruteur> getById(@PathVariable Long id) {
-        return recruteurService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        try {
+            Recruteur recruteur = recruteurService.getById(id);
+            return ResponseEntity.ok(recruteur);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<Recruteur> update(@PathVariable Long id, @RequestBody Recruteur recruteur) {
-        Recruteur updated = recruteurService.update(id, recruteur);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Recruteur recruteur) {
+        try {
+            Recruteur updated = recruteurService.update(id, recruteur);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ResponseEntity<?> delete(@PathVariable Long id) {
         if (!recruteurService.existsById(id)) {
-            return ResponseEntity.status(404).body("Recruteur avec id " + id + " non trouvé");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Recruteur avec id " + id + " non trouvé");
         }
         recruteurService.delete(id);
         return ResponseEntity.ok("Recruteur avec id " + id + " supprimé avec succès");
@@ -58,13 +69,14 @@ public class RecruteurController {
 
     // SEARCH BY EMAIL
     @GetMapping("/search")
-    public ResponseEntity<Recruteur> getByEmail(@RequestParam String email) {
+    public ResponseEntity<?> getByEmail(@RequestParam String email) {
         return recruteurService.findByEmail(email)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Recruteur non trouvé"));
     }
 
-    // CHECK EXISTS
+    // EXISTS
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(recruteurService.existsById(id));
