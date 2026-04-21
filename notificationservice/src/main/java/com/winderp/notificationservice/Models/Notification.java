@@ -2,7 +2,6 @@ package com.winderp.notificationservice.Models;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -22,13 +21,15 @@ public class Notification {
     private Long interviewId;
 
     @Column(nullable = false)
-    private String status; // ex: "SENT"
+    private String status = "NEW"; // "SENT"
 
     @Column(nullable = false)
-    private Boolean readed = false; // ⚠ important : DEFAULT false
+    private Boolean readed = false;
 
     @Column(nullable = false)
     private LocalDateTime dateEnvoi = LocalDateTime.now();
+    @Column(columnDefinition = "TEXT")
+    private String message;
 
-    private String message; // texte de la notification
-}
+    @Column(nullable = false)
+    private String type = "INFO"; }

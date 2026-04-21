@@ -13,6 +13,7 @@ import java.util.List;
 @RequestMapping("/api/rh")
 @RequiredArgsConstructor
 @CrossOrigin("*")
+
 public class RHController {
 
     private final RHService rhService;

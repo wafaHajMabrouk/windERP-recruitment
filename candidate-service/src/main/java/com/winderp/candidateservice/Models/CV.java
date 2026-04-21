@@ -1,13 +1,14 @@
 package com.winderp.candidateservice.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class CV {
 
     @Id
@@ -16,10 +17,15 @@ public class CV {
 
     private String nomFichier;
 
-    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(columnDefinition = "BYTEA")
+    @JsonIgnore
+    private byte[] data;
+
     @Column(columnDefinition = "TEXT")
-    private String contenu; // Stocke le texte extrait du PDF
+    private String contenuTexte;
 
     @OneToOne
+    @JoinColumn(name = "candidature_id", unique = true)
     private Candidature candidature;
 }

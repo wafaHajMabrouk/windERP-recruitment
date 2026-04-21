@@ -1,7 +1,30 @@
 package com.winderp.candidateservice.Repository;
 
 import com.winderp.candidateservice.Models.Offre;
+import com.winderp.candidateservice.Models.Statut;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface OffreRepository extends JpaRepository<Offre, Long> {
+
+    // Filtrer par catégorie (exact)
+    List<Offre> findByCategorie(String categorie);
+
+    // Filtrer par mot clé (contient, insensible à la casse)
+    List<Offre> findByMotCleContainingIgnoreCase(String motCle);
+
+    // Filtrer par statut (OUVERT / FERME)
+    List<Offre> findByStatut(Statut statut);
+
+    // Recherche combinée : catégorie ET mot clé
+    List<Offre> findByCategorieAndMotCleContainingIgnoreCase(String categorie, String motCle);
+
+    // Offres encore ouvertes (statut OUVERT et date limite non dépassée)
+    @Query("SELECT o FROM Offre o WHERE o.statut = :statut AND (o.dateLimite IS NULL OR o.dateLimite >= CURRENT_DATE)")
+    List<Offre> findOffresOuvertes(@Param("statut") Statut statut);
+
+    long countByStatut(Statut statut);
 }

@@ -3,6 +3,7 @@ package com.winderp.authentification.Controllers;
 import com.winderp.authentification.Models.User;
 import com.winderp.authentification.services.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -15,15 +16,31 @@ public class AuthController {
 
     private final AuthService authService;
 
-    // REGISTER
     @PostMapping("/register")
-    public User register(@RequestBody User user){
-        return authService.register(user);
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            Map<String, Object> response = authService.register(user);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", "Erreur interne du serveur"));
+        }
     }
 
-    // LOGIN
     @PostMapping("/login")
-    public Map<String,String> login(@RequestBody User user){
-        return authService.login(user);
+    public ResponseEntity<?> login(@RequestBody Map<String, String> data) {
+        try {
+            String email = data.get("email");
+            String password = data.get("password");
+            Map<String, Object> response = authService.login(email, password);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("message", "Erreur interne du serveur"));
+        }
     }
 }

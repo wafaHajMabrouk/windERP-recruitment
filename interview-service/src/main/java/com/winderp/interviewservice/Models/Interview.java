@@ -1,30 +1,33 @@
 package com.winderp.interviewservice.Models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Calendar;
-
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class Interview {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Long candidatureId;
+    // ← Ne sera plus affiché dans le JSON
     private Long recruteurId;
+
     private String type;
     private String statut;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private Calendar dateHeure;
+    private String dateHeure;
 
     private String feedback;
-    private Integer score;
+    private Double score;
+
+    @Transient
+    private String candidateName;
+
+    @Transient
+    private String recruteurName;
 }

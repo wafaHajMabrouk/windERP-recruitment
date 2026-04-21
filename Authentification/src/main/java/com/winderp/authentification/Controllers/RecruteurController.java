@@ -1,7 +1,9 @@
 package com.winderp.authentification.Controllers;
 
 import com.winderp.authentification.Models.Recruteur;
+import com.winderp.authentification.Models.User;
 import com.winderp.authentification.services.RecruteurService;
+import com.winderp.authentification.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +15,7 @@ import java.util.List;
 @RequestMapping("/api/recruteurs")
 @RequiredArgsConstructor
 @CrossOrigin("*")
+
 public class RecruteurController {
 
     private final RecruteurService recruteurService;
@@ -80,5 +83,16 @@ public class RecruteurController {
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(recruteurService.existsById(id));
+    }
+    @GetMapping("/{id}/name")
+    public ResponseEntity<String> getRecruteurName(@PathVariable Long id) {
+        try {
+            Recruteur recruteur = recruteurService.getById(id);
+            // Supposons que Recruteur a une méthode getNom() ou getFullName()
+            String name = recruteur.getNom();        // adaptez selon votre entité
+            return ResponseEntity.ok(name);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 }

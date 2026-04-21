@@ -5,16 +5,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
-        name = "auth-service",
-        contextId = "recruteurClient"
-)// <-- nom exact du microservice Recruteur/Candidate dans Eureka
+        name = "auth-service",        // ou "user-service" selon ton Eureka
+        contextId = "recruteurClient",url = "http://localhost:8087"
+)
 public interface RecruteurClient {
 
-    /**
-     * Vérifie si le recruteur existe dans Candidate-Service.
-     * @param id l'identifiant du recruteur
-     * @return true si existe, false sinon
-     */
+    @GetMapping("/api/recruteurs/{id}/name")   // ← Change ici si l'endpoint réel est différent
+    String getRecruteurName(@PathVariable("id") Long id);
+
+    // Optionnel : si tu veux vérifier l'existence
     @GetMapping("/api/recruteurs/exists/{id}")
     Boolean existsById(@PathVariable("id") Long id);
 }

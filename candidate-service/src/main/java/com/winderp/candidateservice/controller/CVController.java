@@ -5,35 +5,55 @@ import com.winderp.candidateservice.Models.Candidature;
 import com.winderp.candidateservice.SERVICE.CVService;
 import com.winderp.candidateservice.SERVICE.CandidatureService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/cv")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class CVController {
 
     private final CVService cvService;
     private final CandidatureService candidatureService;
 
+    // UPLOAD
     @PostMapping("/upload/{candidatureId}")
-    public CV uploadCV(@PathVariable Long candidatureId,
-                       @RequestParam("file") MultipartFile file) throws IOException {
-        Candidature candidature = candidatureService.getById(candidatureId);
-        return cvService.uploadCV(file.getOriginalFilename(), String.valueOf(file), candidature);
+    public ResponseEntity<?> upload(@PathVariable Long candidatureId,
+                                    @RequestParam("file") MultipartFile file) throws IOException {
+
+        Candidature c = candidatureService.getById(candidatureId);
+
+        if (c == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Candidature introuvable");
+        }
+
+        CV cv = cvService.uploadCV(file, c);
+        return ResponseEntity.ok(cv);
     }
 
-    @GetMapping("/{candidatureId}")
-    public CV getCV(@PathVariable Long candidatureId) {
-        return cvService.getByCandidatureId(candidatureId);
-    }
+    // DOWNLOAD
+    @GetMapping("/download/by-candidature/{candidatureId}")
+    public ResponseEntity<byte[]> download(@PathVariable Long candidatureId) {
 
-    @DeleteMapping("/{candidatureId}")
-    public String deleteCV(@PathVariable Long candidatureId) {
         CV cv = cvService.getByCandidatureId(candidatureId);
-        cvService.delete(cv.getId());
-        return "CV supprimé avec succès";
+
+        if (cv == null || cv.getData() == null) {
+            return ResponseEntity.notFound().build(); // 🔥 ton 404 actuel
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + cv.getNomFichier() + "\"")
+                .body(cv.getData());
     }
 }

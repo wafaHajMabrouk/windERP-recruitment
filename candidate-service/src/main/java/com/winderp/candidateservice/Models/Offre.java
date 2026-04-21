@@ -1,8 +1,10 @@
 package com.winderp.candidateservice.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -21,6 +23,19 @@ public class Offre {
     @Column(length = 2000)
     private String description;
 
-    @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL)
+    private String categorie;
+    private String motCle;
+
+    // NOUVEAUX CHAMPS
+    private LocalDate dateLimite;
+    private Integer maxCandidatures;
+
+    @Enumerated(EnumType.STRING)
+    private Statut statut = Statut.OUVERT;
+
+    @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Candidature> candidatures;
+
+    // Pas de logique métier ici – déplacée dans le service
 }

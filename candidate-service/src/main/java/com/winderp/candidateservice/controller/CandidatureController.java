@@ -1,32 +1,62 @@
 package com.winderp.candidateservice.controller;
 
-import com.winderp.candidateservice.Models.*;
+import com.winderp.candidateservice.Models.Candidature;
+import com.winderp.candidateservice.Models.CV;
+import com.winderp.candidateservice.Models.Status;
+import com.winderp.candidateservice.Repository.CandidatureRepository;
 import com.winderp.candidateservice.SERVICE.*;
 import com.winderp.candidateservice.ai.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/candidatures")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:4200")
 public class CandidatureController {
 
     private final CandidatureService candidatureService;
     private final OffreService offreService;
     private final CVService cvService;
     private final AIService aiService;
+    private final CandidatureRepository repository;
 
     @PostMapping
-    public Candidature create(@RequestBody Candidature candidature) {
-        Offre offre = offreService.getById(candidature.getOffre().getId());
-        candidature.setOffre(offre);
-        return candidatureService.create(candidature);
+    public ResponseEntity<?> create(@RequestBody Candidature candidature) {
+        try {
+            candidature.setOffre(offreService.getById(candidature.getOffre().getId()));
+            Candidature saved = candidatureService.create(candidature);
+            return ResponseEntity.ok(saved);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @GetMapping
+    public List<Candidature> getAllCandidatures() {
+        try {
+            List<Candidature> list = candidatureService.getAll();
+            System.out.println("🔥 API retourne : " + list.size());
+            return list;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur serveur : " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}")
+    public Candidature getById(@PathVariable Long id) {
+        try {
+            return candidatureService.getById(id);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Candidature introuvable id=" + id);
+        }
     }
 
     @GetMapping("/offre/{offreId}")
@@ -34,30 +64,121 @@ public class CandidatureController {
         return candidatureService.getByOffre(offreId);
     }
 
-    @PostMapping("/{id}/cv")
-    public CV uploadCV(@PathVariable Long id, @RequestParam("file") MultipartFile file) throws IOException {
+    @GetMapping("/candidate/{candidateId}")
+    public List<Candidature> getByCandidate(@PathVariable Long candidateId) {
+        try {
+            return candidatureService.getByCandidate(candidateId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur serveur : " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/candidateId")
+    public Long getCandidateIdByCandidatureId(@PathVariable Long id) {
         Candidature c = candidatureService.getById(id);
-        return cvService.uploadCVFromPDF(file, c);  // ← utilisation correcte de l'extraction PDF
+        if (c == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Candidature introuvable");
+        }
+        return c.getCandidateId();
+    }
+
+    @PostMapping("/{id}/cv")
+    public CV uploadCV(@PathVariable Long id,
+                       @RequestParam("file") MultipartFile file) throws IOException {
+
+        Candidature c = candidatureService.getById(id);
+
+        if (c == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Candidature introuvable");
+        }
+
+        return cvService.uploadCVFromPDF(file, c);
     }
 
     @PostMapping("/{id}/analyser")
-    public AIResponse analyser(@PathVariable Long id) {
+    public Candidature analyser(@PathVariable Long id) {
+
         Candidature c = candidatureService.getById(id);
-
         CV cv = cvService.getByCandidatureId(id);
-        if (cv == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Aucun CV associé");
+
+        if (cv == null || cv.getContenuTexte() == null || cv.getContenuTexte().trim().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CV vide ou illisible");
         }
 
-        String cvText = cv.getContenu();
-        if (cvText == null || cvText.trim().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CV vide ou extraction échouée (PDF scanné ?)");
+        try {
+            AIResponse response = aiService.analyserCV(
+                    c.getOffre().getDescription(),
+                    cv.getContenuTexte()
+            );
+
+            return candidatureService.updateAfterAI(
+                    id,
+                    response.getScore(),
+                    response.getDecision()
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return candidatureService.updateAfterAI(
+                    id,
+                    50.0,
+                    "EN_ATTENTE"
+            );
         }
-
-        AIResponse response = aiService.analyserCV(c.getOffre().getDescription(), cvText);
-
-        candidatureService.updateAfterAI(id, response.getScore(), response.getDecision());
-
-        return response;
     }
+
+    @GetMapping("/exists/{id}")
+    public Boolean existsById(@PathVariable Long id) {
+        return repository.existsById(id);
+    }
+
+    @GetMapping("/count")
+    public long count() {
+        return candidatureService.count();
+    }
+
+    @PutMapping("/{id}")
+    public Candidature update(@PathVariable Long id, @RequestBody Candidature updated) {
+        return candidatureService.update(id, updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        candidatureService.delete(id);
+    }
+
+
+    @GetMapping("/isaccepted")
+    public ResponseEntity<?> getAcceptedCandidaturesForInterview() {
+        try {
+            List<Map<String, Object>> result = candidatureService.getAcceptedCandidaturesForInterview();
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur interne: " + e.getMessage());
+        }
+    }
+
+    // 2. Endpoint avec variable – après le fixe
+    @GetMapping("/{id}/isAccepted")
+    public ResponseEntity<Boolean> isCandidatureAccepted(@PathVariable Long id) {
+        try {
+            Candidature c = candidatureService.getById(id);
+            if (c == null) return ResponseEntity.ok(false);
+            boolean accepted = c.getStatus() == Status.ACCEPTE;
+            return ResponseEntity.ok(accepted);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+
+    }
+    @GetMapping("/count/acceptees")
+    public long countAccepted() {
+        return candidatureService.countByStatus(Status.ACCEPTE);
+    }
+
+
 }
