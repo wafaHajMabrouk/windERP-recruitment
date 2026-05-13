@@ -95,4 +95,15 @@ public class UserController {
                 .map(user -> ResponseEntity.ok(user.getNom()))  // adaptez getFullName() si nécessaire
                 .orElse(ResponseEntity.notFound().build());
     }
-}
+    @GetMapping("/{id}/email")
+    public ResponseEntity<String> getUserEmail(@PathVariable Long id) {
+        try {
+            User user = userService.getById(id);
+            if (user != null && user.getEmail() != null) {
+                return ResponseEntity.ok(user.getEmail());
+            }
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }}

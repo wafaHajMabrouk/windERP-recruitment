@@ -39,6 +39,7 @@ public class CandidatureController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @GetMapping
     public List<Candidature> getAllCandidatures() {
         try {
@@ -149,7 +150,6 @@ public class CandidatureController {
         candidatureService.delete(id);
     }
 
-
     @GetMapping("/isaccepted")
     public ResponseEntity<?> getAcceptedCandidaturesForInterview() {
         try {
@@ -162,7 +162,6 @@ public class CandidatureController {
         }
     }
 
-    // 2. Endpoint avec variable – après le fixe
     @GetMapping("/{id}/isAccepted")
     public ResponseEntity<Boolean> isCandidatureAccepted(@PathVariable Long id) {
         try {
@@ -173,12 +172,58 @@ public class CandidatureController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
         }
-
     }
+
     @GetMapping("/count/acceptees")
     public long countAccepted() {
         return candidatureService.countByStatus(Status.ACCEPTE);
     }
 
+    // NOUVEAU ENDPOINT : Renvoyer l'email manuellement
+    @PostMapping("/{id}/renvoyer-email")
+    public ResponseEntity<String> renvoyerEmail(@PathVariable Long id) {
+        try {
+            candidatureService.renvoyerEmailManuellement(id);
+            return ResponseEntity.ok("Email renvoyé avec succès pour la candidature " + id);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de l'envoi de l'email: " + e.getMessage());
+        }
+    }
+    @GetMapping("/{id}/candidate-name")
+    public ResponseEntity<String> getCandidateName(@PathVariable Long id) {
+        try {
+            return candidatureService.getByIdOptional(id)
+                    .map(c -> {
+                        String name = candidatureService.getCandidateName(c.getCandidateId());
+                        return ResponseEntity.ok(name);
+                    })
+                    .orElse(ResponseEntity.ok("Candidat inconnu"));
 
+        } catch (Exception e) {
+            return ResponseEntity.ok("Candidat inconnu");
+        }
+    }
+    @GetMapping("/filter/score")
+    public List<Candidature> filterByScore(@RequestParam Double minScore) {
+        return candidatureService.filterByScore(minScore);
+    }
+    // ✅ FILTER BY MIN SCORE
+
+
+    // ✅ FILTER BY RANGE
+    @GetMapping("/filter/score-range")
+    public List<Candidature> filterByScoreRange(
+            @RequestParam Double min,
+            @RequestParam Double max) {
+        return candidatureService.filterByScoreRange(min, max);
+    }
+
+    // ✅ FILTER BY SCORE + STATUS
+    @GetMapping("/filter/score-status")
+    public List<Candidature> filterByScoreAndStatus(
+            @RequestParam Double score,
+            @RequestParam Status status) {
+        return candidatureService.filterByScoreAndStatus(score, status);
+    }
 }

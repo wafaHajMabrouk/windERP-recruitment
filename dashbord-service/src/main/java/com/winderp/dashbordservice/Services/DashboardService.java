@@ -1,14 +1,12 @@
 package com.winderp.dashbordservice.Services;
 
-import com.winderp.dashbordservice.Client.AuthClient;
-import com.winderp.dashbordservice.Client.CandidatureClient;
-import com.winderp.dashbordservice.Client.InterviewClient;
-import com.winderp.dashbordservice.Client.NotificationClient;
+import com.winderp.dashbordservice.Client.*;
 import com.winderp.dashbordservice.Models.DashboardStats;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 @Service
@@ -20,28 +18,67 @@ public class DashboardService {
     private final CandidatureClient candidatureClient;
     private final InterviewClient interviewClient;
     private final NotificationClient notificationClient;
-              // ← NOUVEAU
 
     public DashboardStats getStats() {
+
         DashboardStats stats = new DashboardStats();
 
-        stats.setTotalCandidatures(safeCall(candidatureClient::getTotalCandidatures, 0));
-        stats.setCandidaturesNouvelles(safeCall(authClient::getTotalCandidates, 0));
-        stats.setCandidaturesAcceptees(safeCall(candidatureClient::getAcceptedCandidatures, 0));   // ← NOUVEAU
-        stats.setEntretiensPlanifies(safeCall(interviewClient::getTotalInterviews, 0));
-        stats.setOffresOuvertes(safeCall(candidatureClient::getOffresOuvertesCount, 0));               // ← NOUVEAU
-        stats.setOffresFermees(safeCall(candidatureClient::getOffresFermeesCount, 0));                 // ← NOUVEAU
-        stats.setNotificationsEnvoyees(safeCall(notificationClient::getTotalNotifications, 0));
+        // 🔥 Appels parallèles
+        CompletableFuture<Integer> totalCandidatures =
+                CompletableFuture.supplyAsync(() -> safe(() -> candidatureClient.getTotalCandidatures(), 0));
+
+        CompletableFuture<Integer> accepted =
+                CompletableFuture.supplyAsync(() -> safe(() -> candidatureClient.getAcceptedCandidatures(), 0));
+
+        CompletableFuture<Integer> newCandidates =
+                CompletableFuture.supplyAsync(() -> safe(() -> authClient.getTotalCandidates(), 0));
+
+        CompletableFuture<Integer> interviews =
+                CompletableFuture.supplyAsync(() -> safe(() -> interviewClient.getTotalInterviews(), 0));
+
+        CompletableFuture<Integer> offresOuvertes =
+                CompletableFuture.supplyAsync(() -> safe(() -> candidatureClient.getOffresOuvertesCount(), 0));
+
+        CompletableFuture<Integer> offresFermees =
+                CompletableFuture.supplyAsync(() -> safe(() -> candidatureClient.getOffresFermeesCount(), 0));
+
+        CompletableFuture<Integer> notifications =
+                CompletableFuture.supplyAsync(() -> safe(() -> notificationClient.getTotalNotifications(), 0));
+
+        CompletableFuture.allOf(
+                totalCandidatures, accepted, newCandidates,
+                interviews, offresOuvertes, offresFermees, notifications
+        ).join();
+
+        // 🔹 Set values
+        stats.setTotalCandidatures(totalCandidatures.join());
+        stats.setCandidaturesAcceptees(accepted.join());
+        stats.setCandidaturesNouvelles(newCandidates.join());
+        stats.setEntretiensPlanifies(interviews.join());
+        stats.setOffresOuvertes(offresOuvertes.join());
+        stats.setOffresFermees(offresFermees.join());
+        stats.setNotificationsEnvoyees(notifications.join());
+
+        // 🔥 KPI intelligents
+        if (stats.getTotalCandidatures() > 0) {
+            stats.setTauxAcceptation(
+                    (double) stats.getCandidaturesAcceptees()
+                            / stats.getTotalCandidatures() * 100
+            );
+        } else {
+            stats.setTauxAcceptation(0);
+        }
 
         return stats;
     }
 
-    private <T> T safeCall(Supplier<T> supplier, T defaultValue) {
+    private <T> T safe(Supplier<T> supplier, T defaultValue) {
         try {
             return supplier.get();
         } catch (Exception e) {
-            log.error("Erreur lors de l'appel distant : {}", e.getMessage());
+            log.error("Erreur service distant: {}", e.getMessage());
             return defaultValue;
         }
     }
+
 }

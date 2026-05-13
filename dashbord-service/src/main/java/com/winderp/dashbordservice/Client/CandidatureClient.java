@@ -3,8 +3,13 @@ package com.winderp.dashbordservice.Client;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.util.List;
+
 @FeignClient(name = "candidate-service")
 public interface CandidatureClient {
+    @GetMapping("/api/candidatures")
+    List<Object> getAllCandidatures();
+
 
     @GetMapping("/api/candidatures/count")
     int getTotalCandidatures();

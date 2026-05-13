@@ -17,4 +17,8 @@ public interface CandidatureRepository extends JpaRepository<Candidature, Long> 
     boolean existsByCandidateIdAndOffreId(Long candidateId, Long offreId);
 
     long countByStatus(Status status);
+    List<Candidature> findByScoreGreaterThanEqual(Double score);
+
+    List<Candidature> findByScoreBetween(Double min, Double max);
+    List<Candidature> findByScoreGreaterThanEqualAndStatus(Double score, Status status);
 }

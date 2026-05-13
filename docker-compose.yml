@@ -1,0 +1,261 @@
+version: '3.9'
+
+services:
+
+  # ========================= POSTGRES =========================
+  postgres:
+    image: postgres:15-alpine
+    container_name: winderp-postgres
+
+    environment:
+      POSTGRES_DB: winderp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: wafawafa
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    networks:
+      - winderp-network
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================= EUREKA SERVER =========================
+  eureka-server:
+    build:
+      context: ./eureka-server
+
+    container_name: winderp-eureka
+
+    ports:
+      - "8762:8762"
+
+    networks:
+      - winderp-network
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8762
+      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_FETCH_REGISTRY: "false"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+  # ========================= API GATEWAY =========================
+  api-gateway:
+    build:
+      context: ./api-gateway
+
+    container_name: winderp-gateway
+
+    ports:
+      - "8082:8082"
+
+    networks:
+      - winderp-network
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8082
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+
+    depends_on:
+      eureka-server:
+        condition: service_started
+
+    restart: unless-stopped
+
+  # ========================= AUTH SERVICE =========================
+  auth-service:
+    build:
+      context: ./Authentification
+
+    container_name: winderp-auth
+
+    ports:
+      - "8087:8087"
+
+    networks:
+      - winderp-network
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8087
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: wafawafa
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+
+      JWT_SECRET: TaCleTresSecreteAuMoins32Caracts
+      JWT_EXPIRATION: 86400000
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      eureka-server:
+        condition: service_started
+
+    restart: unless-stopped
+
+  # ========================= DASHBOARD SERVICE =========================
+  dashboard-service:
+    build:
+      context: ./dashbord-service
+
+    container_name: winderp-dashboard
+
+    ports:
+      - "8088:8088"
+
+    networks:
+      - winderp-network
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8088
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: wafawafa
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      eureka-server:
+        condition: service_started
+
+    restart: unless-stopped
+
+  # ========================= CANDIDATE SERVICE =========================
+  candidate-service:
+    build:
+      context: ./candidate-service
+
+    container_name: winderp-candidate
+
+    ports:
+      - "8089:8089"
+
+    networks:
+      - winderp-network
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8089
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: wafawafa
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+
+      GEMINI_API_KEY: YOUR_GEMINI_API_KEY
+
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: yourmail@gmail.com
+      SPRING_MAIL_PASSWORD: yourpassword
+
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      eureka-server:
+        condition: service_started
+
+    restart: unless-stopped
+
+  # ========================= NOTIFICATION SERVICE =========================
+  notification-service:
+    build:
+      context: ./notificationservice
+
+    container_name: winderp-notification
+
+    ports:
+      - "8090:8090"
+
+    networks:
+      - winderp-network
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8090
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: wafawafa
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      eureka-server:
+        condition: service_started
+
+    restart: unless-stopped
+
+  # ========================= INTERVIEW SERVICE =========================
+  interview-service:
+    build:
+      context: ./interview-service
+
+    container_name: winderp-interview
+
+    ports:
+      - "8091:8091"
+
+    networks:
+      - winderp-network
+
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8091
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: wafawafa
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      eureka-server:
+        condition: service_started
+
+    restart: unless-stopped
+
+# ========================= NETWORK =========================
+networks:
+  winderp-network:
+    driver: bridge
+
+# ========================= VOLUME =========================
+volumes:
+  postgres_data:

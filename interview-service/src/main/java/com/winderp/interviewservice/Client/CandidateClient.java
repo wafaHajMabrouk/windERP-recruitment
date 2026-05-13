@@ -17,7 +17,7 @@ public interface CandidateClient {
     @GetMapping("/api/candidatures/{id}/candidateId")
     Long getCandidatIdByCandidatureId(@PathVariable Long id);
 
-    @GetMapping("/api/candidatures/{id}/candidateName")
+    @GetMapping("/api/candidatures/{id}/candidate-name")
     String getCandidateNameByCandidatureId(@PathVariable("id") Long id);
 
     @GetMapping("/api/candidatures/{id}/isAccepted")

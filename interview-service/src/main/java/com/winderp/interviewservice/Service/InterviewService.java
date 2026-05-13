@@ -3,6 +3,7 @@ package com.winderp.interviewservice.Service;
 import com.winderp.interviewservice.Client.CandidateClient;
 import com.winderp.interviewservice.Client.RecruteurClient;
 import com.winderp.interviewservice.Client.NotificationClient;
+import com.winderp.interviewservice.Client.authClient;
 import com.winderp.interviewservice.Models.Interview;
 import com.winderp.interviewservice.Repository.InterviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,26 +20,29 @@ public class InterviewService {
     private final CandidateClient candidateClient;
     private final RecruteurClient recruteurClient;
     private final NotificationClient notificationClient;
-
+    private final authClient authClient;
     private void enrichWithNames(Interview interview) {
-        // Récupération du nom du candidat
-        if (interview.getCandidatureId() != null) {
-            try {
+
+        try {
+            if (interview.getCandidatureId() != null) {
                 String name = candidateClient.getCandidateNameByCandidatureId(interview.getCandidatureId());
-                interview.setCandidateName(name != null && !name.isEmpty() ? name : "Candidat inconnu");
-            } catch (Exception e) {
-                interview.setCandidateName("Candidat inconnu");
+                interview.setCandidateName(
+                        (name != null && !name.trim().isEmpty())
+                                ? name
+                                : "Candidat inconnu"
+                );
             }
+        } catch (Exception e) {
+            interview.setCandidateName("Candidat inconnu");
         }
 
-        // Récupération du nom du recruteur
-        if (interview.getRecruteurId() != null) {
-            try {
+        try {
+            if (interview.getRecruteurId() != null) {
                 String name = recruteurClient.getRecruteurName(interview.getRecruteurId());
-                interview.setRecruteurName(name != null && !name.isEmpty() ? name : "Recruteur inconnu");
-            } catch (Exception e) {
-                interview.setRecruteurName("Recruteur inconnu");
+                interview.setRecruteurName(name);
             }
+        } catch (Exception e) {
+            interview.setRecruteurName("Recruteur inconnu");
         }
     }
 
@@ -69,12 +73,12 @@ public class InterviewService {
         try {
             Long candidatId = candidateClient.getCandidatIdByCandidatureId(interview.getCandidatureId());
             if (candidatId != null) {
-                String message = "📅 Entretien programmé le " + saved.getDateHeure()
+                String message = "Entretien programmé le " + saved.getDateHeure()
                         + " (Type: " + saved.getType() + ")";
                 notificationClient.sendNotification(candidatId, message);
             }
         } catch (Exception e) {
-            System.err.println("❌ Erreur notification : " + e.getMessage());
+            System.err.println(" Erreur notification : " + e.getMessage());
         }
 
         return saved;
@@ -120,5 +124,10 @@ public class InterviewService {
 
     public long count() {
         return repository.count();
+    }
+    public List<Interview> getByMinScore(Double score) {
+        List<Interview> interviews = repository.findByScoreGreaterThanEqual(score);
+        interviews.forEach(this::enrichWithNames);
+        return interviews;
     }
 }

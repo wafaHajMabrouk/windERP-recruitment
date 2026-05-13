@@ -8,4 +8,5 @@ import java.util.List;
 public interface InterviewRepository extends JpaRepository<Interview, Long> {
     List<Interview> findByCandidatureId(Long candidatureId);
     List<Interview> findByRecruteurId(Long recruteurId);
+    List<Interview> findByScoreGreaterThanEqual(Double score);
 }

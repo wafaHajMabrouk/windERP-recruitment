@@ -5,11 +5,14 @@ import lombok.Data;
 @Data
 public class DashboardStats {
 
-    private int totalCandidatures;
-    private int candidaturesNouvelles;
-    private int candidaturesAcceptees;     // ← NOUVEAU
-    private int entretiensPlanifies;
-    private int offresOuvertes;            // ← NOUVEAU
-    private int offresFermees;             // ← NOUVEAU
-    private int notificationsEnvoyees;
+    private long totalCandidatures;
+    private long candidaturesNouvelles;
+    private long candidaturesAcceptees;
+    private long entretiensPlanifies;
+    private long offresOuvertes;
+    private long offresFermees;
+    private long notificationsEnvoyees;
+    // 🔥 KPI BONUS PFE
+    private double tauxAcceptation;
+    private double scoreMoyen;
 }

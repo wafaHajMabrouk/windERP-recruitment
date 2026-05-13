@@ -1,64 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.winderp</groupId>
     <artifactId>winderp-recruitment</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
 
     <name>windERP Recruitment</name>
-    <description>Plateforme de recrutement multi-microservices (Eureka + Gateway + Candidate Service)</description>
+    <description>Plateforme de recrutement multi-microservices (Microservices Architecture)</description>
 
+    <!-- ============================================= -->
+    <!-- MODULES DU PROJET -->
+    <!-- ============================================= -->
     <modules>
         <module>eureka-server</module>
         <module>api-gateway</module>
+        <module>Authentification</module>
         <module>candidate-service</module>
-        <!-- Ajoute ici d'autres modules futurs ex: <module>auth-service</module> -->
+        <module>interview-service</module>
+        <module>notificationservice</module>
+        <module>dashbord-service</module>  <!-- ⚠️ Attention: dashboard-service (sans 'b'?) -->
     </modules>
 
     <!-- ============================================= -->
-    <!-- Versions centralisées -->
+    <!-- SPRING BOOT PARENT -->
     <!-- ============================================= -->
-    <properties>
-        <java.version>17</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-
-        <!-- Spring Boot -->
-        <spring-boot.version>3.5.10</spring-boot.version>
-
-        <!-- Spring Cloud (compatible Spring Boot 3.5.x) -->
-        <spring-cloud.version>2025.0.1</spring-cloud.version> <!-- ou la dernière 2025.0.x disponible -->
-
-        <!-- Autres versions utiles -->
-        <lombok.version>1.18.34</lombok.version>
-        <springdoc-openapi.version>2.6.0</springdoc-openapi.version> <!-- ou dernière compatible -->
-        <postgresql.version>42.7.4</postgresql.version>
-    </properties>
-
-    <!-- Héritage Spring Boot (gère starters, plugins, etc.) -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.10</version>
-        <relativePath/> <!-- lookup from repository -->
+        <version>3.2.3</version>
+        <relativePath/>
     </parent>
 
-    <!-- Gestion centralisée des versions Spring Cloud + autres -->
+    <!-- ============================================= -->
+    <!-- VERSIONS CENTRALISÉES -->
+    <!-- ============================================= -->
+    <properties>
+        <!-- Java -->
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Spring Boot & Cloud -->
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
+
+        <!-- Dépendances Core -->
+        <lombok.version>1.18.34</lombok.version>
+        <springdoc.version>2.5.0</springdoc.version>
+        <postgresql.version>42.7.2</postgresql.version>
+
+        <!-- JWT -->
+        <jjwt.version>0.11.5</jjwt.version>
+
+        <!-- Tests -->
+        <testcontainers.version>1.19.3</testcontainers.version>
+
+        <!-- Plugins -->
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+        <jacoco.version>0.8.11</jacoco.version>
+        <sonar-maven-plugin.version>3.10.0.2594</sonar-maven-plugin.version>
+    </properties>
+
+    <!-- ============================================= -->
+    <!-- DEPENDENCY MANAGEMENT -->
+    <!-- ============================================= -->
     <dependencyManagement>
         <dependencies>
-
-            <!-- Spring Cloud BOM (importe toutes les versions compatibles) -->
+            <!-- Spring Cloud BOM -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- ===== TESTS ===== -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${testcontainers.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- PostgreSQL -->
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <!-- H2 pour tests -->
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>2.2.224</version>
+                <scope>test</scope>
             </dependency>
 
             <!-- Lombok -->
@@ -69,78 +127,180 @@
                 <scope>provided</scope>
             </dependency>
 
-            <!-- OpenAPI / Swagger (springdoc) -->
+            <!-- OpenAPI -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-                <version>${springdoc-openapi.version}</version>
+                <version>${springdoc.version}</version>
             </dependency>
 
-            <!-- PostgreSQL driver -->
+            <!-- JWT -->
             <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${postgresql.version}</version>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
                 <scope>runtime</scope>
             </dependency>
 
+            <!-- Micrometer Prometheus -->
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>1.12.3</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
-    <!-- Dépendances communes à tous les modules (optionnel) -->
+    <!-- ============================================= -->
+    <!-- DÉPENDANCES COMMUNES À TOUS LES MODULES -->
+    <!-- ============================================= -->
     <dependencies>
-        <!-- Lombok pour tous les modules -->
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
 
-        <!-- Tests communs -->
+        <!-- Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Prometheus -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
     </dependencies>
 
+    <!-- ============================================= -->
+    <!-- BUILD PLUGINS -->
+    <!-- ============================================= -->
     <build>
-        <plugins>
-            <!-- Compiler Java 17 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
-            <!-- Pour build executable jar dans les modules -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
-
-        <!-- Pour que les modules héritent du plugin spring-boot -->
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+
+                <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${spring-boot.version}</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
     </build>
+
+    <!-- ============================================= -->
+    <!-- PROFILS -->
+    <!-- ============================================= -->
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>docker</id>
+            <properties>
+                <spring.profiles.active>docker</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

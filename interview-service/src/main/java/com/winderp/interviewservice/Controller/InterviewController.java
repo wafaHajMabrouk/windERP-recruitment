@@ -52,7 +52,12 @@ public class InterviewController {
 
     @GetMapping("/recruteur/{recruteurId}")
     public ResponseEntity<List<Interview>> getByRecruteur(@PathVariable Long recruteurId) {
-        return ResponseEntity.ok(interviewService.getByRecruteurId(recruteurId));
+
+        List<Interview> list = interviewService.getByRecruteurId(recruteurId);
+
+        System.out.println("🔥 INTERVIEWS FOUND = " + list.size());
+
+        return ResponseEntity.ok(list);
     }
 
     @DeleteMapping("/{id}")
@@ -81,5 +86,9 @@ public class InterviewController {
         }
         Interview updated = interviewService.save(interview);
         return ResponseEntity.ok(updated);
+    }
+    @GetMapping("/filter/score")
+    public ResponseEntity<List<Interview>> filterByScore(@RequestParam Double minScore) {
+        return ResponseEntity.ok(interviewService.getByMinScore(minScore));
     }
 }
