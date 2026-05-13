@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,12 +19,32 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build with Maven (skip tests)
-        run: |
-          cd Authentification
-          mvn clean compile -DskipTests
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
-      - name: Package with Maven (skip tests)
+      - name: Compile with Maven
         run: |
           cd Authentification
-          mvn package -DskipTests
+          mvn clean compile
+
+      - name: Run tests with Maven
+        run: |
+          cd Authentification
+          mvn test
+        continue-on-error: false  # Échoue si les tests échouent
+
+      - name: Generate test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: Authentification/target/surefire-reports/
+
+      - name: Package with Maven
+        run: |
+          cd Authentification
+          mvn package -DskipTests=false
