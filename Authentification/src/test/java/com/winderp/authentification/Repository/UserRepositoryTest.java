@@ -7,10 +7,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
+@ActiveProfiles("test")
 class UserRepositoryTest {
 
     @Autowired
@@ -21,7 +23,6 @@ class UserRepositoryTest {
 
     @Test
     void testFindByEmail_WithCandidate() {
-        // Given
         Candidate candidate = new Candidate();
         candidate.setEmail("candidate@test.com");
         candidate.setPassword("password123");
@@ -30,13 +31,10 @@ class UserRepositoryTest {
         candidate.setRole("CANDIDATE");
         candidate.setStatus("APPROVED");
 
-        entityManager.persist(candidate);
-        entityManager.flush();
+        entityManager.persistAndFlush(candidate);
 
-        // When
         var found = userRepository.findByEmail("candidate@test.com");
 
-        // Then
         assertThat(found).isPresent();
         assertThat(found.get().getEmail()).isEqualTo("candidate@test.com");
         assertThat(found.get().getRole()).isEqualTo("CANDIDATE");
@@ -44,7 +42,6 @@ class UserRepositoryTest {
 
     @Test
     void testFindByEmail_WithAdmin() {
-        // Given
         Admin admin = new Admin();
         admin.setEmail("admin@test.com");
         admin.setPassword("admin123");
@@ -53,13 +50,10 @@ class UserRepositoryTest {
         admin.setRole("ADMIN");
         admin.setStatus("APPROVED");
 
-        entityManager.persist(admin);
-        entityManager.flush();
+        entityManager.persistAndFlush(admin);
 
-        // When
         var found = userRepository.findByEmail("admin@test.com");
 
-        // Then
         assertThat(found).isPresent();
         assertThat(found.get().getEmail()).isEqualTo("admin@test.com");
         assertThat(found.get().getRole()).isEqualTo("ADMIN");
@@ -67,38 +61,27 @@ class UserRepositoryTest {
 
     @Test
     void testCheckEmailExists_True() {
-        // Given
         Candidate user = new Candidate();
         user.setEmail("exists@example.com");
         user.setPassword("password");
         user.setRole("CANDIDATE");
         user.setStatus("PENDING");
 
-        entityManager.persist(user);
-        entityManager.flush();
+        entityManager.persistAndFlush(user);
 
-        // When - Vérification sans existsByEmail
         boolean emailExists = userRepository.findByEmail("exists@example.com").isPresent();
-
-        // Then
         assertThat(emailExists).isTrue();
     }
 
     @Test
     void testCheckEmailExists_False() {
-        // When
         boolean emailExists = userRepository.findByEmail("nonexistent@example.com").isPresent();
-
-        // Then
         assertThat(emailExists).isFalse();
     }
 
     @Test
     void testFindByEmail_NotFound() {
-        // When
         var found = userRepository.findByEmail("nonexistent@example.com");
-
-        // Then
         assertThat(found).isEmpty();
     }
 }
