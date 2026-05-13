@@ -25,7 +25,6 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("message", "Erreur interne du serveur"));
         }
     }
@@ -38,17 +37,9 @@ public class AuthController {
             Map<String, Object> response = authService.login(email, password);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            String message = e.getMessage();
-
-            // Retourner 401 pour les erreurs d'authentification
-            if (message.equals("Utilisateur non trouvé") ||
-                    message.equals("Mot de passe incorrect") ||
-                    message.equals("Compte non validé par admin")) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", message));
-            }
-            return ResponseEntity.badRequest().body(Map.of("message", message));
+            // TOUJOURS 401 pour les erreurs d'authentification
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(500).body(Map.of("message", "Erreur interne du serveur"));
         }
     }

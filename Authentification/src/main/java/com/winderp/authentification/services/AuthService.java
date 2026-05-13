@@ -20,11 +20,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public Map<String, Object> register(User data) {
-        // Vérification des données
-        if (data == null || data.getEmail() == null || data.getPassword() == null || data.getRole() == null) {
-            throw new RuntimeException("Données d'inscription incomplètes");
-        }
-
+        // Vérification email existant
         if (userRepository.findByEmail(data.getEmail()).isPresent()) {
             throw new RuntimeException("Email déjà utilisé");
         }
@@ -36,19 +32,17 @@ public class AuthService {
         switch (role) {
             case "ADMIN":
                 Admin admin = new Admin();
-                if (data.getDepartement() != null) {
-                    admin.setDepartement(data.getDepartement());
-                }
+                admin.setDepartement(data.getDepartement());
                 copyCommon(data, admin, encodedPassword, role);
-                admin.setStatus("APPROVED");
+                admin.setStatus("APPROVED"); // ✅ CORRECTION IMPORTANTE
                 userToSave = admin;
                 break;
 
             case "CANDIDATE":
                 Candidate candidate = new Candidate();
-                if (data.getAdresse() != null) candidate.setAdresse(data.getAdresse());
-                if (data.getCompetences() != null) candidate.setCompetences(data.getCompetences());
-                if (data.getNiveauExperience() != null) candidate.setNiveauExperience(data.getNiveauExperience());
+                candidate.setAdresse(data.getAdresse());
+                candidate.setCompetences(data.getCompetences());
+                candidate.setNiveauExperience(data.getNiveauExperience());
                 copyCommon(data, candidate, encodedPassword, role);
                 candidate.setStatus("PENDING");
                 userToSave = candidate;
@@ -56,8 +50,8 @@ public class AuthService {
 
             case "RH":
                 RH rh = new RH();
-                if (data.getDepartement() != null) rh.setDepartement(data.getDepartement());
-                if (data.getNiveauResponsabilite() != null) rh.setNiveauResponsabilite(data.getNiveauResponsabilite());
+                rh.setDepartement(data.getDepartement());
+                rh.setNiveauResponsabilite(data.getNiveauResponsabilite());
                 copyCommon(data, rh, encodedPassword, role);
                 rh.setStatus("PENDING");
                 userToSave = rh;
@@ -65,9 +59,9 @@ public class AuthService {
 
             case "RECRUTEUR":
                 Recruteur recruteur = new Recruteur();
-                if (data.getEntreprise() != null) recruteur.setEntreprise(data.getEntreprise());
-                if (data.getPoste() != null) recruteur.setPoste(data.getPoste());
-                if (data.getSiteEntreprise() != null) recruteur.setSiteEntreprise(data.getSiteEntreprise());
+                recruteur.setEntreprise(data.getEntreprise());
+                recruteur.setPoste(data.getPoste());
+                recruteur.setSiteEntreprise(data.getSiteEntreprise());
                 copyCommon(data, recruteur, encodedPassword, role);
                 recruteur.setStatus("PENDING");
                 userToSave = recruteur;
@@ -97,13 +91,6 @@ public class AuthService {
     }
 
     public Map<String, Object> login(String email, String password) {
-        if (email == null || email.trim().isEmpty()) {
-            throw new RuntimeException("Email requis");
-        }
-        if (password == null || password.trim().isEmpty()) {
-            throw new RuntimeException("Mot de passe requis");
-        }
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
@@ -111,7 +98,7 @@ public class AuthService {
             throw new RuntimeException("Mot de passe incorrect");
         }
 
-        // ADMIN peut toujours se connecter, les autres doivent être APPROVED
+        // ✅ CORRECTION: ADMIN peut toujours se connecter
         if (!"ADMIN".equals(user.getRole()) && !"APPROVED".equals(user.getStatus())) {
             throw new RuntimeException("Compte non validé par admin");
         }
@@ -123,7 +110,6 @@ public class AuthService {
         response.put("role", user.getRole());
         response.put("id", user.getId());
         response.put("email", user.getEmail());
-        response.put("status", user.getStatus());
 
         return response;
     }
