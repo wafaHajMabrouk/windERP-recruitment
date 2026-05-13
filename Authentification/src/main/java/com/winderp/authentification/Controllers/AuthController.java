@@ -40,7 +40,7 @@ public class AuthController {
         } catch (RuntimeException e) {
             String message = e.getMessage();
 
-            // Retourner 401 pour les erreurs d'authentification, 400 pour les autres
+            // Retourner 401 pour les erreurs d'authentification
             if (message.equals("Utilisateur non trouvé") ||
                     message.equals("Mot de passe incorrect") ||
                     message.equals("Compte non validé par admin")) {

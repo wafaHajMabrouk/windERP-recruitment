@@ -190,7 +190,19 @@ class AuthServiceTest {
 
         when(userRepository.findByEmail("newadmin@test.com")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("admin123")).thenReturn("encodedAdmin123");
-        when(userRepository.save(any(Admin.class))).thenReturn(newAdmin);
+
+        // Créer un admin sauvegardé avec le bon statut
+        Admin savedAdmin = new Admin();
+        savedAdmin.setId(2L);
+        savedAdmin.setEmail("newadmin@test.com");
+        savedAdmin.setNom("New");
+        savedAdmin.setPrenom("Admin");
+        savedAdmin.setRole("ADMIN");
+        savedAdmin.setStatus("APPROVED");
+        savedAdmin.setDepartement("Security");
+        savedAdmin.setPassword("encodedAdmin123");
+
+        when(userRepository.save(any(Admin.class))).thenReturn(savedAdmin);
 
         Map<String, Object> result = authService.register(newAdmin);
 

@@ -20,7 +20,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
 
     public Map<String, Object> register(User data) {
-        // Vérification des données d'entrée
+        // Vérification des données
         if (data == null || data.getEmail() == null || data.getPassword() == null || data.getRole() == null) {
             throw new RuntimeException("Données d'inscription incomplètes");
         }
@@ -74,7 +74,7 @@ public class AuthService {
                 break;
 
             default:
-                throw new RuntimeException("Rôle invalide: " + role);
+                throw new RuntimeException("Rôle invalide");
         }
 
         User savedUser = userRepository.save(userToSave);
@@ -97,7 +97,6 @@ public class AuthService {
     }
 
     public Map<String, Object> login(String email, String password) {
-        // Vérification des données d'entrée
         if (email == null || email.trim().isEmpty()) {
             throw new RuntimeException("Email requis");
         }
@@ -112,7 +111,7 @@ public class AuthService {
             throw new RuntimeException("Mot de passe incorrect");
         }
 
-        // Vérification du statut (sauf pour ADMIN)
+        // ADMIN peut toujours se connecter, les autres doivent être APPROVED
         if (!"ADMIN".equals(user.getRole()) && !"APPROVED".equals(user.getStatus())) {
             throw new RuntimeException("Compte non validé par admin");
         }
