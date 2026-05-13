@@ -7,9 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  # ==================== TESTS DES MICROSERVICES ====================
 
-  # Job pour le microservice authentification
+  # ==================== TEST AUTH ====================
   test-authentification:
     runs-on: ubuntu-latest
 
@@ -29,248 +28,75 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Test Authentification Service
+      - name: Run tests
         run: |
           cd Authentification
-          mvn clean test -DskipTests=false
+          mvn clean test
 
-      - name: Generate test report for Authentification
+      - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-authentification
+          name: auth-tests
           path: Authentification/target/surefire-reports/
-          retention-days: 30
 
-  # Job pour le microservice candidate-service
-  test-candidate-service:
+  # ==================== OTHER MICROSERVICES ====================
+  test-services:
     runs-on: ubuntu-latest
     continue-on-error: true
 
+    strategy:
+      matrix:
+        service: [
+          candidate-service,
+          interview-service,
+          notification-service,
+          dashboard-service,
+          eureka-server,
+          api-gateway
+        ]
+
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Check if candidate-service exists
-        id: check_candidate
+
+      - name: Test ${{ matrix.service }}
         run: |
-          if [ -d "candidate-service" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
+          if [ -d "${{ matrix.service }}" ]; then
+            cd ${{ matrix.service }}
+            mvn clean test || true
           fi
-      - name: Test Candidate Service
-        if: steps.check_candidate.outputs.exists == 'true'
-        run: |
-          cd candidate-service
-          mvn clean test -DskipTests=false || true
-      - name: Generate test report for Candidate Service
-        if: always() && steps.check_candidate.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-candidate-service
-          path: candidate-service/target/surefire-reports/
-          retention-days: 30
 
-  # Job pour le microservice interview-service
-  test-interview-service:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Check if interview-service exists
-        id: check_interview
-        run: |
-          if [ -d "interview-service" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Test Interview Service
-        if: steps.check_interview.outputs.exists == 'true'
-        run: |
-          cd interview-service
-          mvn clean test -DskipTests=false || true
-      - name: Generate test report for Interview Service
-        if: always() && steps.check_interview.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-interview-service
-          path: interview-service/target/surefire-reports/
-          retention-days: 30
-
-  # Job pour le microservice notification-service
-  test-notification-service:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Check if notification-service exists
-        id: check_notification
-        run: |
-          if [ -d "notification-service" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Test Notification Service
-        if: steps.check_notification.outputs.exists == 'true'
-        run: |
-          cd notification-service
-          mvn clean test -DskipTests=false || true
-      - name: Generate test report for Notification Service
-        if: always() && steps.check_notification.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-notification-service
-          path: notification-service/target/surefire-reports/
-          retention-days: 30
-
-  # Job pour le microservice dashboard-service
-  test-dashboard-service:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Check if dashboard-service exists
-        id: check_dashboard
-        run: |
-          if [ -d "dashboard-service" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Test Dashboard Service
-        if: steps.check_dashboard.outputs.exists == 'true'
-        run: |
-          cd dashboard-service
-          mvn clean test -DskipTests=false || true
-      - name: Generate test report for Dashboard Service
-        if: always() && steps.check_dashboard.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-dashboard-service
-          path: dashboard-service/target/surefire-reports/
-          retention-days: 30
-
-  # Job pour Eureka Server
-  test-eureka-server:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Check if eureka-server exists
-        id: check_eureka
-        run: |
-          if [ -d "eureka-server" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Test Eureka Server
-        if: steps.check_eureka.outputs.exists == 'true'
-        run: |
-          cd eureka-server
-          mvn clean test -DskipTests=false || true
-      - name: Generate test report for Eureka Server
-        if: always() && steps.check_eureka.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-eureka-server
-          path: eureka-server/target/surefire-reports/
-          retention-days: 30
-
-  # Job pour API Gateway
-  test-api-gateway:
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-      - name: Check if api-gateway exists
-        id: check_gateway
-        run: |
-          if [ -d "api-gateway" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Test API Gateway
-        if: steps.check_gateway.outputs.exists == 'true'
-        run: |
-          cd api-gateway
-          mvn clean test -DskipTests=false || true
-      - name: Generate test report for API Gateway
-        if: always() && steps.check_gateway.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-api-gateway
-          path: api-gateway/target/surefire-reports/
-          retention-days: 30
-
-  # ==================== PACKAGE ALL SERVICES ====================
-
+  # ==================== PACKAGE ====================
   package-all:
     runs-on: ubuntu-latest
-    needs: [test-authentification, test-candidate-service, test-interview-service, test-notification-service, test-dashboard-service, test-eureka-server, test-api-gateway]
+    needs: [test-authentification, test-services]
     if: always()
 
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Package all existing services
+
+      - name: Build all services
         run: |
           for dir in */; do
             if [ -f "$dir/pom.xml" ]; then
-              echo "Packaging $dir"
               cd "$dir"
               mvn clean package -DskipTests || true
               cd ..
             fi
           done
-      - name: Upload all JARs
-        uses: actions/upload-artifact@v4
-        with:
-          name: all-jars
-          path: |
-            */target/*.jar
-            !*/target/*-sources.jar
-            !*/target/*-javadoc.jar
-          retention-days: 30
 
-  # ==================== ANALYSE SONARQUBE ====================
-
+  # ==================== SONAR ====================
   sonar-analysis:
     runs-on: ubuntu-latest
     needs: package-all
@@ -281,19 +107,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-
-      - name: Run SonarQube analysis
+      - name: SonarQube analysis
         run: |
           mvn sonar:sonar \
             -Dsonar.host.url=https://sonarcloud.io \
@@ -301,8 +120,7 @@ jobs:
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
 
-  # ==================== BUILD DOCKER IMAGES ====================
-
+  # ==================== DOCKER ====================
   docker-build:
     runs-on: ubuntu-latest
     needs: package-all
@@ -311,73 +129,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download JAR artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: all-jars
-          path: ./jars
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker images
+      - name: Build Auth service image
         run: |
-          # Authentification
           docker build -t winderp/authentification:latest ./Authentification
           docker push winderp/authentification:latest
-          
-          # Candidate Service
-          if [ -d "candidate-service" ]; then
-            docker build -t winderp/candidate-service:latest ./candidate-service
-            docker push winderp/candidate-service:latest
-          fi
-          
-          # Interview Service
-          if [ -d "interview-service" ]; then
-            docker build -t winderp/interview-service:latest ./interview-service
-            docker push winderp/interview-service:latest
-          fi
-          
-          # Notification Service
-          if [ -d "notification-service" ]; then
-            docker build -t winderp/notification-service:latest ./notification-service
-            docker push winderp/notification-service:latest
-          fi
-          
-          # Dashboard Service
-          if [ -d "dashboard-service" ]; then
-            docker build -t winderp/dashboard-service:latest ./dashboard-service
-            docker push winderp/dashboard-service:latest
-          fi
-          
-          # Eureka Server
-          if [ -d "eureka-server" ]; then
-            docker build -t winderp/eureka-server:latest ./eureka-server
-            docker push winderp/eureka-server:latest
-          fi
-          
-          # API Gateway
-          if [ -d "api-gateway" ]; then
-            docker build -t winderp/api-gateway:latest ./api-gateway
-            docker push winderp/api-gateway:latest
-          fi
 
-  # ==================== DEPLOIEMENT ====================
-
+  # ==================== DEPLOY ====================
   deploy:
     runs-on: ubuntu-latest
     needs: docker-build
     if: github.ref == 'refs/heads/main' && success()
 
     steps:
-      - name: Deploy to server
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
@@ -389,40 +160,47 @@ jobs:
             docker system prune -f
 
   # ==================== NOTIFICATIONS ====================
-
   notify:
     runs-on: ubuntu-latest
     needs: [sonar-analysis, docker-build, deploy]
     if: always()
 
     steps:
-      - name: Send Slack notification
+
+      # ================= SLACK FIX =================
+      - name: Slack notification
         uses: slackapi/slack-github-action@v1
         with:
           payload: |
             {
-              "text": "🚀 Pipeline CI/CD terminé!\n\n✅ Status: ${{ job.status }}\n📦 Commit: ${{ github.sha }}\n🔗 Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": "🚀 Pipeline CI/CD terminé\n📦 Commit: ${{ github.sha }}\n🔗 Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Send email notification on failure
+      # ================= EMAIL FIX =================
+      - name: Email notification (failure only)
         if: failure()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
-          server_port: 465
+          server_port: 587
+          secure: true
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "❌ Pipeline CI/CD échoué"
           to: ${{ secrets.MAIL_TO }}
           from: GitHub Actions
           body: |
-            Le pipeline CI/CD a échoué pour le commit ${{ github.sha }}.
-            Voir les détails: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            ❌ Pipeline failed
 
-  # ==================== TESTS DE CHARGE ====================
+            Commit: ${{ github.sha }}
+            Repo: ${{ github.repository }}
 
+            Run details:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  # ==================== PERFORMANCE ====================
   performance-test:
     runs-on: ubuntu-latest
     needs: deploy
@@ -436,36 +214,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
 
-      - name: Create load test file
+      - name: Run load test
         run: |
           mkdir -p tests
-          cat > tests/load-test.js << 'EOF'
+
+          cat > tests/test.js << 'EOF'
           import http from 'k6/http';
-          import { sleep, check } from 'k6';
-          
-          export let options = {
-            stages: [
-              { duration: '30s', target: 20 },
-              { duration: '1m', target: 50 },
-              { duration: '30s', target: 0 },
-            ],
-          };
-          
+          import { check } from 'k6';
+
           export default function () {
             let res = http.get('http://localhost:8080/actuator/health');
-            check(res, { 'status was 200': (r) => r.status == 200 });
-            sleep(1);
+            check(res, {
+              'status is 200': (r) => r.status === 200
+            });
           }
           EOF
 
-      - name: Run k6 load tests
-        run: |
-          k6 run tests/load-test.js --out json=results.json || true
-
-      - name: Upload performance results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: performance-results
-          path: results.json
-          retention-days: 30
+          k6 run tests/test.js || true

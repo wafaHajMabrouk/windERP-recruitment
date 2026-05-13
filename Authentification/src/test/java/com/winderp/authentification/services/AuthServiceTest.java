@@ -2,8 +2,6 @@ package com.winderp.authentification.services;
 
 import com.winderp.authentification.Models.Admin;
 import com.winderp.authentification.Models.Candidate;
-import com.winderp.authentification.Models.RH;
-import com.winderp.authentification.Models.Recruteur;
 import com.winderp.authentification.Models.User;
 import com.winderp.authentification.Repository.UserRepository;
 import com.winderp.authentification.config.JwtUtil;
@@ -42,6 +40,7 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
+
         testCandidate = new Candidate();
         testCandidate.setId(1L);
         testCandidate.setEmail("candidate@test.com");
@@ -67,16 +66,20 @@ class AuthServiceTest {
     @Test
     @DisplayName("Test login success - Candidate")
     void testLogin_Success_Candidate() {
+
         when(userRepository.findByEmail("candidate@test.com"))
                 .thenReturn(Optional.of(testCandidate));
+
         when(passwordEncoder.matches("password123", "encodedPassword123"))
                 .thenReturn(true);
 
         try (MockedStatic<JwtUtil> jwtUtilMock = mockStatic(JwtUtil.class)) {
+
             jwtUtilMock.when(() -> JwtUtil.generateToken(anyString(), anyString()))
                     .thenReturn("jwt-token-123");
 
-            Map<String, Object> result = authService.login("candidate@test.com", "password123");
+            Map<String, Object> result =
+                    authService.login("candidate@test.com", "password123");
 
             assertNotNull(result);
             assertEquals("CANDIDATE", result.get("role"));
@@ -85,22 +88,27 @@ class AuthServiceTest {
             assertNotNull(result.get("token"));
         }
 
-        verify(userRepository, times(1)).findByEmail("candidate@test.com");
+        verify(userRepository, times(1))
+                .findByEmail("candidate@test.com");
     }
 
     @Test
     @DisplayName("Test login success - Admin")
     void testLogin_Success_Admin() {
+
         when(userRepository.findByEmail("admin@test.com"))
                 .thenReturn(Optional.of(testAdmin));
+
         when(passwordEncoder.matches("admin123", "encodedAdmin123"))
                 .thenReturn(true);
 
         try (MockedStatic<JwtUtil> jwtUtilMock = mockStatic(JwtUtil.class)) {
+
             jwtUtilMock.when(() -> JwtUtil.generateToken(anyString(), anyString()))
                     .thenReturn("jwt-token-123");
 
-            Map<String, Object> result = authService.login("admin@test.com", "admin123");
+            Map<String, Object> result =
+                    authService.login("admin@test.com", "admin123");
 
             assertNotNull(result);
             assertEquals("ADMIN", result.get("role"));
@@ -111,12 +119,14 @@ class AuthServiceTest {
     @Test
     @DisplayName("Test login failed - User not found")
     void testLogin_UserNotFound() {
+
         when(userRepository.findByEmail("unknown@test.com"))
                 .thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.login("unknown@test.com", "password123");
-        });
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> {
+                    authService.login("unknown@test.com", "password123");
+                });
 
         assertEquals("Utilisateur non trouvé", exception.getMessage());
     }
@@ -124,14 +134,17 @@ class AuthServiceTest {
     @Test
     @DisplayName("Test login failed - Wrong password")
     void testLogin_WrongPassword() {
+
         when(userRepository.findByEmail("candidate@test.com"))
                 .thenReturn(Optional.of(testCandidate));
+
         when(passwordEncoder.matches("wrongpassword", "encodedPassword123"))
                 .thenReturn(false);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.login("candidate@test.com", "wrongpassword");
-        });
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> {
+                    authService.login("candidate@test.com", "wrongpassword");
+                });
 
         assertEquals("Mot de passe incorrect", exception.getMessage());
     }
@@ -139,15 +152,19 @@ class AuthServiceTest {
     @Test
     @DisplayName("Test login failed - Account not approved")
     void testLogin_AccountNotApproved() {
+
         testCandidate.setStatus("PENDING");
+
         when(userRepository.findByEmail("candidate@test.com"))
                 .thenReturn(Optional.of(testCandidate));
+
         when(passwordEncoder.matches("password123", "encodedPassword123"))
                 .thenReturn(true);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.login("candidate@test.com", "password123");
-        });
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> {
+                    authService.login("candidate@test.com", "password123");
+                });
 
         assertEquals("Compte non validé par admin", exception.getMessage());
     }
@@ -155,7 +172,9 @@ class AuthServiceTest {
     @Test
     @DisplayName("Test register - Candidate success")
     void testRegister_Candidate_Success() {
+
         Candidate newCandidate = new Candidate();
+
         newCandidate.setEmail("new@test.com");
         newCandidate.setPassword("rawPassword123");
         newCandidate.setNom("Nouveau");
@@ -165,11 +184,17 @@ class AuthServiceTest {
         newCandidate.setCompetences("Java");
         newCandidate.setNiveauExperience("Junior");
 
-        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("rawPassword123")).thenReturn("encodedPassword123");
-        when(userRepository.save(any(Candidate.class))).thenReturn(newCandidate);
+        when(userRepository.findByEmail("new@test.com"))
+                .thenReturn(Optional.empty());
 
-        Map<String, Object> result = authService.register(newCandidate);
+        when(passwordEncoder.encode("rawPassword123"))
+                .thenReturn("encodedPassword123");
+
+        when(userRepository.save(any(Candidate.class)))
+                .thenReturn(newCandidate);
+
+        Map<String, Object> result =
+                authService.register(newCandidate);
 
         assertNotNull(result);
         assertEquals("new@test.com", result.get("email"));
@@ -180,7 +205,9 @@ class AuthServiceTest {
     @Test
     @DisplayName("Test register - Admin success")
     void testRegister_Admin_Success() {
+
         Admin newAdmin = new Admin();
+
         newAdmin.setEmail("newadmin@test.com");
         newAdmin.setPassword("admin123");
         newAdmin.setNom("New");
@@ -188,11 +215,14 @@ class AuthServiceTest {
         newAdmin.setRole("ADMIN");
         newAdmin.setDepartement("Security");
 
-        when(userRepository.findByEmail("newadmin@test.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("admin123")).thenReturn("encodedAdmin123");
+        when(userRepository.findByEmail("newadmin@test.com"))
+                .thenReturn(Optional.empty());
 
-        // Créer un admin sauvegardé avec le bon statut
+        when(passwordEncoder.encode("admin123"))
+                .thenReturn("encodedAdmin123");
+
         Admin savedAdmin = new Admin();
+
         savedAdmin.setId(2L);
         savedAdmin.setEmail("newadmin@test.com");
         savedAdmin.setNom("New");
@@ -202,9 +232,11 @@ class AuthServiceTest {
         savedAdmin.setDepartement("Security");
         savedAdmin.setPassword("encodedAdmin123");
 
-        when(userRepository.save(any(Admin.class))).thenReturn(savedAdmin);
+        when(userRepository.save(any(Admin.class)))
+                .thenReturn(savedAdmin);
 
-        Map<String, Object> result = authService.register(newAdmin);
+        Map<String, Object> result =
+                authService.register(newAdmin);
 
         assertNotNull(result);
         assertEquals("newadmin@test.com", result.get("email"));
@@ -215,38 +247,57 @@ class AuthServiceTest {
     @Test
     @DisplayName("Test register failed - Email already used")
     void testRegister_EmailAlreadyUsed() {
+
         Candidate existingCandidate = new Candidate();
+
+        existingCandidate.setNom("Dupont");
+        existingCandidate.setPrenom("Jean");
         existingCandidate.setEmail("existing@test.com");
+        existingCandidate.setPassword("password123");
+        existingCandidate.setRole("CANDIDATE");
+        existingCandidate.setAdresse("Paris");
+        existingCandidate.setCompetences("Java");
+        existingCandidate.setNiveauExperience("Junior");
 
         when(userRepository.findByEmail("existing@test.com"))
                 .thenReturn(Optional.of(existingCandidate));
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.register(existingCandidate);
-        });
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> {
+                    authService.register(existingCandidate);
+                });
 
         assertEquals("Email déjà utilisé", exception.getMessage());
+
         verify(userRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("Test register failed - Invalid role")
     void testRegister_InvalidRole() {
-        // Création d'une classe anonyme pour tester un rôle invalide
+
         User invalidUser = new User() {
-            // Implémentation vide car User est abstrait
         };
+
+        invalidUser.setNom("Invalid");
+        invalidUser.setPrenom("User");
         invalidUser.setEmail("invalid@test.com");
         invalidUser.setPassword("password123");
         invalidUser.setRole("INVALID_ROLE");
 
-        when(userRepository.findByEmail("invalid@test.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("invalid@test.com"))
+                .thenReturn(Optional.empty());
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.register(invalidUser);
-        });
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> {
+                    authService.register(invalidUser);
+                });
 
-        assertEquals("Rôle invalide", exception.getMessage());
+        assertEquals(
+                "Rôle invalide: INVALID_ROLE",
+                exception.getMessage()
+        );
+
         verify(userRepository, never()).save(any());
     }
 }
