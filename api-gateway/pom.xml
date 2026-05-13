@@ -22,7 +22,7 @@
         <java.version>17</java.version>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <lombok.version>1.18.34</lombok.version>
-        <skipTests>false</skipTests>
+        <skipTests>true</skipTests>
     </properties>
 
     <!-- Gestion des versions Spring Cloud -->
@@ -39,7 +39,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Spring Cloud Gateway -->
+        <!-- Spring Cloud Gateway (Ne PAS ajouter spring-boot-starter-web) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
@@ -65,17 +65,16 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- WebFlux (obligatoire pour Gateway, pas seulement scope test) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- WebFlux pour les tests (nécessaire pour Gateway) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

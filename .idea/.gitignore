@@ -1,4 +1,4 @@
-# Default ignored files
+# Default ignored files (déjà existant)
 /shelf/
 /workspace.xml
 # Ignored default folder with query files
@@ -8,3 +8,67 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+
+# ==================== ENVIRONMENT VARIABLES (À AJOUTER) ====================
+.env
+.env.*
+!.env.example
+*.env
+*.env.local
+
+# ==================== BUILD FILES ====================
+**/target/
+**/classes/
+**/test-classes/
+*.class
+*.jar
+*.war
+*.ear
+
+# ==================== LOGS ====================
+*.log
+logs/
+**/logs/
+
+# ==================== OS FILES ====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==================== SPRING BOOT SECRETS ====================
+**/application-secrets.properties
+**/application-local.properties
+
+# ==================== UPLOADS ====================
+uploads/
+**/uploads/
+
+# ==================== TEMP FILES ====================
+*.tmp
+*.bak
+*.backup
+*.orig
+*.rej
+
+# ==================== TEST REPORTS ====================
+**/surefire-reports/
+**/failsafe-reports/
+*.xml
+*.html
+
+# ==================== NODE / ANGULAR (si utilisé) ====================
+node_modules/
+npm-debug.log
+dist/
+coverage/
+
+# ==================== DOCKER ====================
+docker-compose.override.yml
+.dockerignore
+
+# ==================== IDEA ====================
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
