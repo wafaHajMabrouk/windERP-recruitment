@@ -26,16 +26,10 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Compile with Maven
+      - name: Build and Test with Maven
         run: |
           cd Authentification
-          mvn clean compile
-
-      - name: Run tests with Maven
-        run: |
-          cd Authentification
-          mvn test
-        continue-on-error: false
+          mvn clean verify
 
       - name: Generate test report
         if: always()
@@ -45,7 +39,16 @@ jobs:
           path: Authentification/target/surefire-reports/
           retention-days: 30
 
-      - name: Package with Maven
+      - name: Package application
+        if: success()
         run: |
           cd Authentification
-          mvn package -DskipTests=false
+          mvn package
+
+      - name: Upload JAR artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authentification-jar
+          path: Authentification/target/*.jar
+          retention-days: 30
