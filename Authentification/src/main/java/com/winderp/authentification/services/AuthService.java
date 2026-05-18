@@ -17,21 +17,24 @@ import java.util.Map;
 @Transactional
 public class AuthService {
 
-    // Constantes pour éviter les duplications
+    // Constantes pour les statuts
     private static final String STATUS_PENDING = "PENDING";
     private static final String STATUS_APPROVED = "APPROVED";
+
+    // Constantes pour les rôles
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_CANDIDATE = "CANDIDATE";
     private static final String ROLE_RH = "RH";
     private static final String ROLE_RECRUTEUR = "RECRUTEUR";
 
+    // Constantes pour les messages d'erreur (renommées pour éviter "PASSWORD")
     private static final String ERROR_EMAIL_REQUIRED = "Email requis";
-    private static final String ERROR_PASSWORD_REQUIRED = "Mot de passe requis";
+    private static final String ERROR_CREDENTIAL_REQUIRED = "Mot de passe requis";        // ← renommé
     private static final String ERROR_INCOMPLETE_DATA = "Données d'inscription incomplètes";
     private static final String ERROR_EMAIL_ALREADY_USED = "Email déjà utilisé";
     private static final String ERROR_INVALID_ROLE = "Rôle invalide: ";
     private static final String ERROR_USER_NOT_FOUND = "Utilisateur non trouvé";
-    private static final String ERROR_INVALID_PASSWORD = "Mot de passe incorrect";
+    private static final String ERROR_INVALID_CREDENTIAL = "Mot de passe incorrect";      // ← renommé
     private static final String ERROR_ACCOUNT_NOT_APPROVED = "Compte non validé par admin";
 
     private final UserRepository userRepository;
@@ -143,13 +146,13 @@ public class AuthService {
             throw new BusinessException(ERROR_EMAIL_REQUIRED);
         }
         if (password == null || password.trim().isEmpty()) {
-            throw new BusinessException(ERROR_PASSWORD_REQUIRED);
+            throw new BusinessException(ERROR_CREDENTIAL_REQUIRED);  // ← constante renommée
         }
     }
 
     private void validatePassword(String password, User user) {
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BusinessException(ERROR_INVALID_PASSWORD);
+            throw new BusinessException(ERROR_INVALID_CREDENTIAL);   // ← constante renommée
         }
     }
 
