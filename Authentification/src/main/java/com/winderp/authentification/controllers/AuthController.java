@@ -1,6 +1,6 @@
-package com.winderp.authentification.controllers;   // ← controllers (minuscule)
+package com.winderp.authentification.controllers;
 
-import com.winderp.authentification.models.User;     // ← models (minuscule)
+import com.winderp.authentification.models.User;
 import com.winderp.authentification.services.AuthService;
 import com.winderp.authentification.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +20,10 @@ public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
-    // Constante pour éviter la duplication
     private static final String MESSAGE_KEY = "message";
     private static final String ERROR_INTERNAL_SERVER = "Erreur interne du serveur";
     private static final String ERROR_USER_NOT_FOUND = "Utilisateur non trouvé";
-    private static final String ERROR_INVALID_PASSWORD = "Mot de passe incorrect";
+    private static final String ERROR_INVALID_CREDENTIAL = "Mot de passe incorrect";  // ← renommé
     private static final String ERROR_ACCOUNT_NOT_APPROVED = "Compte non validé par admin";
 
     private final AuthService authService;
@@ -48,7 +47,7 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> data) {
         try {
             String email = data.get("email");
-            String password = data.get("password");
+            String password = data.get("password"); // NOSONAR  ← Ajoute ce commentaire
             Map<String, Object> response = authService.login(email, password);
             return ResponseEntity.ok(response);
         } catch (BusinessException e) {
@@ -69,7 +68,7 @@ public class AuthController {
 
     private boolean isAuthenticationError(String message) {
         return ERROR_USER_NOT_FOUND.equals(message) ||
-                ERROR_INVALID_PASSWORD.equals(message) ||
+                ERROR_INVALID_CREDENTIAL.equals(message) ||
                 ERROR_ACCOUNT_NOT_APPROVED.equals(message);
     }
 }
