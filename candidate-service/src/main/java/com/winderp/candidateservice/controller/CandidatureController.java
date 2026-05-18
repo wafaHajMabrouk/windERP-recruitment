@@ -1,10 +1,10 @@
 package com.winderp.candidateservice.controller;
 
-import com.winderp.candidateservice.Models.Candidature;
-import com.winderp.candidateservice.Models.CV;
-import com.winderp.candidateservice.Models.Status;
-import com.winderp.candidateservice.Repository.CandidatureRepository;
-import com.winderp.candidateservice.SERVICE.*;
+import com.winderp.candidateservice.models.Candidature;
+import com.winderp.candidateservice.models.CV;
+import com.winderp.candidateservice.models.Status;
+import com.winderp.candidateservice.repository.CandidatureRepository;
+import com.winderp.candidateservice.service.*;
 import com.winderp.candidateservice.ai.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

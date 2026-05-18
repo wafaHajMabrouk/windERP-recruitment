@@ -1,8 +1,8 @@
 package com.winderp.candidateservice.controller;
 
-import com.winderp.candidateservice.Models.Offre;
-import com.winderp.candidateservice.Models.Statut;
-import com.winderp.candidateservice.SERVICE.OffreService;
+import com.winderp.candidateservice.models.Offre;
+import com.winderp.candidateservice.models.Statut;
+import com.winderp.candidateservice.service.OffreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

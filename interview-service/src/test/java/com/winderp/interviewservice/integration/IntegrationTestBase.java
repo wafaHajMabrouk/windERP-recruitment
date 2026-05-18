@@ -17,16 +17,16 @@ public abstract class IntegrationTestBase {
 
     // Mock des clients Feign pour éviter les appels externes
     @MockBean
-    private com.winderp.interviewservice.Client.CandidateClient candidateClient;
+    private com.winderp.interviewservice.client.CandidateClient candidateClient;
 
     @MockBean
-    private com.winderp.interviewservice.Client.RecruteurClient recruteurClient;
+    private com.winderp.interviewservice.client.RecruteurClient recruteurClient;
 
     @MockBean
-    private com.winderp.interviewservice.Client.NotificationClient notificationClient;
+    private com.winderp.interviewservice.client.NotificationClient notificationClient;
 
     @MockBean
-    private com.winderp.interviewservice.Client.authClient authClient;
+    private com.winderp.interviewservice.client.authClient authClient;
 
     @DynamicPropertySource
     static void overrideProperties(DynamicPropertyRegistry registry) {

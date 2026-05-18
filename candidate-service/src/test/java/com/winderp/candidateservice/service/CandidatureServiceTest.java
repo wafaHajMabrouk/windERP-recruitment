@@ -1,14 +1,11 @@
 package com.winderp.candidateservice.service;
 
-import com.winderp.candidateservice.Client.AuthClient;
-import com.winderp.candidateservice.Models.Candidature;
-import com.winderp.candidateservice.Models.Offre;
-import com.winderp.candidateservice.Models.Status;
-import com.winderp.candidateservice.Models.Statut;
-import com.winderp.candidateservice.Repository.CandidatureRepository;
-import com.winderp.candidateservice.SERVICE.CandidatureService;
-import com.winderp.candidateservice.SERVICE.EmailService;
-import com.winderp.candidateservice.SERVICE.OffreService;
+import com.winderp.candidateservice.client.AuthClient;
+import com.winderp.candidateservice.models.Candidature;
+import com.winderp.candidateservice.models.Offre;
+import com.winderp.candidateservice.models.Status;
+import com.winderp.candidateservice.models.Statut;
+import com.winderp.candidateservice.repository.CandidatureRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

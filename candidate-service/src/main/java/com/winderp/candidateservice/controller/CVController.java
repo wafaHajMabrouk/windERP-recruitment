@@ -1,17 +1,15 @@
 package com.winderp.candidateservice.controller;
 
-import com.winderp.candidateservice.Models.CV;
-import com.winderp.candidateservice.Models.Candidature;
-import com.winderp.candidateservice.SERVICE.CVService;
-import com.winderp.candidateservice.SERVICE.CandidatureService;
+import com.winderp.candidateservice.models.CV;
+import com.winderp.candidateservice.models.Candidature;
+import com.winderp.candidateservice.service.CVService;
+import com.winderp.candidateservice.service.CandidatureService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
