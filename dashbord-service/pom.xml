@@ -77,7 +77,12 @@
             <artifactId>smile-core</artifactId>
             <version>3.0.2</version>
         </dependency>
-
+        <!-- Spring Dotenv - Pour charger le fichier .env -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
         <!-- Spring Cloud Eureka -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
