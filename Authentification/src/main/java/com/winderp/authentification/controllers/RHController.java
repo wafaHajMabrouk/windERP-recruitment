@@ -1,7 +1,7 @@
-package com.winderp.authentification.Controllers;
+package com.winderp.authentification.controllers;
 
-import com.winderp.authentification.Models.Admin;
-import com.winderp.authentification.services.AdminService;
+import com.winderp.authentification.models.RH;
+import com.winderp.authentification.services.RHService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,19 +10,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admins")
+@RequestMapping("/api/rh")
 @RequiredArgsConstructor
 @CrossOrigin("*")
 
-public class AdminController {
+public class RHController {
 
-    private final AdminService adminService;
+    private final RHService rhService;
 
     // CREATE
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Admin admin) {
+    public ResponseEntity<?> create(@RequestBody RH rh) {
         try {
-            Admin saved = adminService.create(admin);
+            RH saved = rhService.create(rh);
             return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
@@ -31,16 +31,16 @@ public class AdminController {
 
     // READ ALL
     @GetMapping
-    public ResponseEntity<List<Admin>> getAll() {
-        return ResponseEntity.ok(adminService.getAll());
+    public ResponseEntity<List<RH>> getAll() {
+        return ResponseEntity.ok(rhService.getAll());
     }
 
     // READ BY ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         try {
-            Admin admin = adminService.getById(id);
-            return ResponseEntity.ok(admin);
+            RH rh = rhService.getById(id);
+            return ResponseEntity.ok(rh);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
@@ -48,9 +48,9 @@ public class AdminController {
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Admin admin) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody RH rh) {
         try {
-            Admin updated = adminService.update(id, admin);
+            RH updated = rhService.update(id, rh);
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -60,17 +60,17 @@ public class AdminController {
     // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        if (!adminService.existsById(id)) {
+        if (!rhService.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Admin avec id " + id + " non trouvé");
+                    .body("RH avec id " + id + " non trouvé");
         }
-        adminService.delete(id);
-        return ResponseEntity.ok("Admin avec id " + id + " supprimé avec succès");
+        rhService.delete(id);
+        return ResponseEntity.ok("RH avec id " + id + " supprimé avec succès");
     }
 
-    // CHECK EXISTS
+    // EXISTS
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.existsById(id));
+        return ResponseEntity.ok(rhService.existsById(id));
     }
 }

@@ -1,4 +1,4 @@
-package com.winderp.authentification.Models;
+package com.winderp.authentification.models;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

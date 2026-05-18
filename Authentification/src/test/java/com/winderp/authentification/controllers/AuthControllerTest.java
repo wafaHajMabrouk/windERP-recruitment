@@ -1,6 +1,6 @@
-package com.winderp.authentification.Controllers;
+package com.winderp.authentification.controllers;
 
-import com.winderp.authentification.Models.*;
+import com.winderp.authentification.models.*;
 import com.winderp.authentification.services.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

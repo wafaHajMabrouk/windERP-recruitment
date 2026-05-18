@@ -1,8 +1,7 @@
-package com.winderp.authentification.Repository;
+package com.winderp.authentification.repository;
 
-import com.winderp.authentification.Models.Admin;
-import com.winderp.authentification.Models.Candidate;
-import com.winderp.authentification.Models.User;
+import com.winderp.authentification.models.Admin;
+import com.winderp.authentification.models.Candidate;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;

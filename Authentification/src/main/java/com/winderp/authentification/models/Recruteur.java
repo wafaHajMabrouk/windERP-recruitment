@@ -1,4 +1,4 @@
-package com.winderp.authentification.Models;
+package com.winderp.authentification.models;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

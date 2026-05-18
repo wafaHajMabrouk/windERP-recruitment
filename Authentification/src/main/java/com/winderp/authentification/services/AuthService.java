@@ -1,7 +1,7 @@
 package com.winderp.authentification.services;
 
-import com.winderp.authentification.Models.*;
-import com.winderp.authentification.Repository.UserRepository;
+import com.winderp.authentification.models.*;           // ← models (minuscule)
+import com.winderp.authentification.repository.UserRepository; // ← repository (minuscule)
 import com.winderp.authentification.config.JwtUtil;
 import com.winderp.authentification.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +27,14 @@ public class AuthService {
     private static final String ROLE_RH = "RH";
     private static final String ROLE_RECRUTEUR = "RECRUTEUR";
 
-    // Constantes pour les messages d'erreur (renommées pour éviter "PASSWORD")
+    // Constantes pour les messages d'erreur
     private static final String ERROR_EMAIL_REQUIRED = "Email requis";
-    private static final String ERROR_CREDENTIAL_REQUIRED = "Mot de passe requis";        // ← renommé
+    private static final String ERROR_CREDENTIAL_REQUIRED = "Mot de passe requis";
     private static final String ERROR_INCOMPLETE_DATA = "Données d'inscription incomplètes";
     private static final String ERROR_EMAIL_ALREADY_USED = "Email déjà utilisé";
     private static final String ERROR_INVALID_ROLE = "Rôle invalide: ";
     private static final String ERROR_USER_NOT_FOUND = "Utilisateur non trouvé";
-    private static final String ERROR_INVALID_CREDENTIAL = "Mot de passe incorrect";      // ← renommé
+    private static final String ERROR_INVALID_CREDENTIAL = "Mot de passe incorrect";
     private static final String ERROR_ACCOUNT_NOT_APPROVED = "Compte non validé par admin";
 
     private final UserRepository userRepository;
@@ -146,13 +146,13 @@ public class AuthService {
             throw new BusinessException(ERROR_EMAIL_REQUIRED);
         }
         if (password == null || password.trim().isEmpty()) {
-            throw new BusinessException(ERROR_CREDENTIAL_REQUIRED);  // ← constante renommée
+            throw new BusinessException(ERROR_CREDENTIAL_REQUIRED);
         }
     }
 
     private void validatePassword(String password, User user) {
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BusinessException(ERROR_INVALID_CREDENTIAL);   // ← constante renommée
+            throw new BusinessException(ERROR_INVALID_CREDENTIAL);
         }
     }
 

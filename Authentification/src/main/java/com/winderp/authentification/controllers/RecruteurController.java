@@ -1,9 +1,7 @@
-package com.winderp.authentification.Controllers;
+package com.winderp.authentification.controllers;
 
-import com.winderp.authentification.Models.Recruteur;
-import com.winderp.authentification.Models.User;
+import com.winderp.authentification.models.Recruteur;
 import com.winderp.authentification.services.RecruteurService;
-import com.winderp.authentification.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

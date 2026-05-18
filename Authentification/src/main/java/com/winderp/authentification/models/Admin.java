@@ -1,6 +1,5 @@
-package com.winderp.authentification.Models;
+package com.winderp.authentification.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.*;

@@ -1,7 +1,7 @@
 package com.winderp.authentification.services;
 
-import com.winderp.authentification.Models.Recruteur;
-import com.winderp.authentification.Repository.RecruteurRepository;
+import com.winderp.authentification.models.Recruteur;
+import com.winderp.authentification.repository.RecruteurRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

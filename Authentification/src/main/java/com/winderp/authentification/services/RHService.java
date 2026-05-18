@@ -1,7 +1,7 @@
 package com.winderp.authentification.services;
 
-import com.winderp.authentification.Models.RH;
-import com.winderp.authentification.Repository.RHRepository;
+import com.winderp.authentification.models.RH;
+import com.winderp.authentification.repository.RHRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

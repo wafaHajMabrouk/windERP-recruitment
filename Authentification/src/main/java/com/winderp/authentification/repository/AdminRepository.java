@@ -1,7 +1,7 @@
-package com.winderp.authentification.Repository;
+package com.winderp.authentification.repository;
 
 
-import com.winderp.authentification.Models.Admin;
+import com.winderp.authentification.models.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

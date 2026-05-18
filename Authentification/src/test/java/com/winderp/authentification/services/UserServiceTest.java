@@ -1,11 +1,8 @@
 package com.winderp.authentification.services;
 
-import com.winderp.authentification.Models.Admin;
-import com.winderp.authentification.Models.Candidate;
-import com.winderp.authentification.Models.RH;
-import com.winderp.authentification.Models.Recruteur;
-import com.winderp.authentification.Models.User;
-import com.winderp.authentification.Repository.UserRepository;
+import com.winderp.authentification.models.Candidate;
+import com.winderp.authentification.models.User;
+import com.winderp.authentification.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
