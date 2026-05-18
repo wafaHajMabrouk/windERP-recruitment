@@ -3,6 +3,7 @@ package com.winderp.authentification.services;
 import com.winderp.authentification.Models.*;
 import com.winderp.authentification.Repository.UserRepository;
 import com.winderp.authentification.config.JwtUtil;
+import com.winderp.authentification.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
