@@ -37,7 +37,7 @@ jobs:
           mvn clean test -DskipTests=false || true
       - name: Generate test report for Authentification
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-authentification
           path: Authentification/target/surefire-reports/
@@ -69,7 +69,7 @@ jobs:
           mvn clean test -DskipTests=false || true
       - name: Generate test report
         if: always() && steps.check_candidate.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-candidate-service
           path: candidate-service/target/surefire-reports/
@@ -101,7 +101,7 @@ jobs:
           mvn clean test -DskipTests=false || true
       - name: Generate test report
         if: always() && steps.check_interview.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-interview-service
           path: interview-service/target/surefire-reports/
@@ -133,7 +133,7 @@ jobs:
           mvn clean test -DskipTests=false || true
       - name: Generate test report
         if: always() && steps.check_notification.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-notification-service
           path: notification-service/target/surefire-reports/
@@ -165,7 +165,7 @@ jobs:
           mvn clean test -DskipTests=false || true
       - name: Generate test report
         if: always() && steps.check_dashboard.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-dashboard-service
           path: dashboard-service/target/surefire-reports/
@@ -197,7 +197,7 @@ jobs:
           mvn clean test -DskipTests=false || true
       - name: Generate test report
         if: always() && steps.check_eureka.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-eureka-server
           path: eureka-server/target/surefire-reports/
@@ -229,7 +229,7 @@ jobs:
           mvn clean test -DskipTests=false || true
       - name: Generate test report
         if: always() && steps.check_gateway.outputs.exists == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-api-gateway
           path: api-gateway/target/surefire-reports/
@@ -259,7 +259,7 @@ jobs:
             fi
           done
       - name: Upload all JARs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: all-jars
           path: |
