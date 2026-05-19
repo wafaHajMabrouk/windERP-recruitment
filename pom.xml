@@ -59,7 +59,7 @@
         <jjwt.version>0.11.5</jjwt.version>
 
         <!-- Tests -->
-        <testcontainers.version>1.19.3</testcontainers.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
 
         <!-- Plugins -->
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
