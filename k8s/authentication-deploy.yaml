@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: authentication
-          image: recrute-auth-service:latest
+          image: hajmabroukwafa/recrute-auth-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8081

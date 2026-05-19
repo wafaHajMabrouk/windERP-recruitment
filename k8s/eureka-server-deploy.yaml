@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: eureka-server
-          image: recrute-eureka-server:latest
+          image: hajmabroukwafa/recrute-eureka-server:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8761

@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: recrute-api-gateway:latest
+          image: hajmabroukwafa/recrute-api-gateway:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8080

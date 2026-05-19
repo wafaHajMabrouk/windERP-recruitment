@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: dashboard-service
-          image: recrute-dashboard-service:latest
+          image: hajmabroukwafa/recrute-dashboard-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8084

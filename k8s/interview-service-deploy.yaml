@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: interview-service
-          image: recrute-interview-service:latest
+          image: hajmabroukwafa/recrute-interview-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8083
