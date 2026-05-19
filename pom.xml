@@ -48,7 +48,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Spring Boot & Cloud -->
-        <spring-cloud.version>2023.0.0</spring-cloud.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
 
         <!-- Dépendances Core -->
         <lombok.version>1.18.34</lombok.version>
