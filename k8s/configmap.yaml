@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: recrute-config
+  namespace: recrute
+data:
+  # Spring profiles
+  SPRING_PROFILES_ACTIVE: "k8s,production"
+  
+  # Eureka configuration
+  EUREKA_URI: "http://eureka-server.recrute.svc.cluster.local:8761/eureka"
+  EUREKA_DEFAULT_ZONE: "http://eureka-server.recrute.svc.cluster.local:8761/eureka"
+  
+  # Database configuration
+  DB_HOST: "postgres.recrute.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "recrutedb"
+  
+  # Redis configuration
+  REDIS_HOST: "redis.recrute.svc.cluster.local"
+  REDIS_PORT: "6379"
+  
+  # Application configuration
+  SERVER_PORT: "8080"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,info,prometheus,metrics"
+  
+  # Logging
+  LOGGING_LEVEL_COM_WINDERP: "DEBUG"
+  LOGGING_PATTERN_CONSOLE: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

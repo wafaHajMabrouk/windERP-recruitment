@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notificationservice
+  namespace: recrute
+  labels:
+    app: notificationservice
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notificationservice
+  template:
+    metadata:
+      labels:
+        app: notificationservice
+        tier: backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8085"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: notificationservice
+          image: votreusername/recrute-notificationservice:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8085
+              name: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: recrute-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: recrute-config
+                  key: EUREKA_URI
+            - name: SERVER_PORT
+              value: "8085"
+            - name: SPRING_APPLICATION_NAME
+              value: "NOTIFICATION-SERVICE"
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: recrute-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: recrute-config
+                  key: REDIS_PORT
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: recrute-secrets
+                  key: API_KEY
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 90
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notificationservice
+  namespace: recrute
+  labels:
+    app: notificationservice
+spec:
+  selector:
+    app: notificationservice
+  ports:
+    - port: 8085
+      targetPort: 8085
+      name: http
+      protocol: TCP
+  type: ClusterIP

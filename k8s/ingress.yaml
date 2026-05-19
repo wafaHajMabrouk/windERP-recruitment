@@ -1,0 +1,126 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: recrute-ingress
+  namespace: recrute
+  annotations:
+    # NGINX Ingress annotations
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    # CORS configuration
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: recrute.local
+      http:
+        paths:
+          # API Gateway - routes principales
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 80
+
+          # API Gateway - endpoints API
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 80
+
+          # Eureka Server dashboard
+          - path: /eureka
+            pathType: Prefix
+            backend:
+              service:
+                name: eureka-server
+                port:
+                  number: 8761
+
+          # Authentication service direct (si besoin)
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: authentication
+                port:
+                  number: 8081
+
+          # Candidate service direct (si besoin)
+          - path: /candidates
+            pathType: Prefix
+            backend:
+              service:
+                name: candidate-service
+                port:
+                  number: 8082
+
+          # Interview service direct (si besoin)
+          - path: /interviews
+            pathType: Prefix
+            backend:
+              service:
+                name: interview-service
+                port:
+                  number: 8083
+
+          # Dashboard service direct (si besoin)
+          - path: /dashboard
+            pathType: Prefix
+            backend:
+              service:
+                name: dashboard-service
+                port:
+                  number: 8084
+
+          # Notification service direct (si besoin)
+          - path: /notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notificationservice
+                port:
+                  number: 8085
+
+          # Actuator endpoints
+          - path: /actuator
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 80
+---
+# Si vous avez besoin de TLS/HTTPS
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: recrute-ingress-tls
+#   namespace: recrute
+# spec:
+#   ingressClassName: nginx
+#   tls:
+#   - hosts:
+#     - recrute.example.com
+#     secretName: recrute-tls
+#   rules:
+#   - host: recrute.example.com
+#     http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: api-gateway
+#             port:
+#               number: 80

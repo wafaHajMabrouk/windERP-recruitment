@@ -1,0 +1,87 @@
+version: '3.8'
+
+networks:
+  logging:
+    name: recrute-logging
+    driver: bridge
+
+volumes:
+  loki_data:
+    name: loki-data
+
+  promtail_positions:
+    name: promtail-positions
+
+  grafana_logs_data:
+    name: grafana-logs-data
+
+services:
+  # Loki - Stockage des logs
+  loki:
+    image: grafana/loki:latest
+    container_name: recrute-loki
+    restart: unless-stopped
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+      - "9095:9095"
+    command: -config.file=/etc/loki/loki-config.yaml
+    networks:
+      - logging
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.recrute.service=loki"
+      - "com.recrute.environment=logging"
+
+  # Promtail - Collecteur de logs
+  promtail:
+    image: grafana/promtail:latest
+    container_name: recrute-promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
+      - promtail_positions:/tmp
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/apps:/var/log/apps:ro
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    networks:
+      - logging
+    depends_on:
+      - loki
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9080/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.recrute.service=promtail"
+      - "com.recrute.environment=logging"
+
+  # Grafana Logs
+  grafana-logs:
+    image: grafana/grafana:latest
+    container_name: recrute-grafana-logs
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_logs_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - logging
+    depends_on:
+      - loki
+    labels:
+      - "com.recrute.service=grafana-logs"
+      - "com.recrute.environment=logging"

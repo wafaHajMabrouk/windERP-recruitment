@@ -1,0 +1,165 @@
+# Configuration Promtail pour collecter les logs
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    batchwait: 1s
+    batchsize: 1048576  # 1MB
+    timeout: 10s
+    backoff_config:
+      min_period: 100ms
+      max_period: 10s
+      max_retries: 5
+
+scrape_configs:
+  # Kubernetes logs
+  - job_name: kubernetes-pods
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - recrute
+            - default
+    pipeline_stages:
+      - docker: {}
+      - match:
+          selector: '{namespace="recrute"}'
+          stages:
+            - regex:
+                expression: '^(?s)(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+[+-]\d{2}:\d{2})\s+(?P<level>[A-Z]+)\s+(?P<message>.*)$'
+            - labels:
+                level:
+                service:
+                namespace:
+                pod:
+                container:
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        target_label: service
+        action: replace
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+        action: replace
+      - source_labels: [__meta_kubernetes_namespace]
+        target_label: namespace
+        action: replace
+      - source_labels: [__meta_kubernetes_pod_container_name]
+        target_label: container
+        action: replace
+      - source_labels: [__meta_kubernetes_pod_uid]
+        target_label: pod_uid
+        action: replace
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+        action: replace
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+
+  # Docker container logs (pour environnement local)
+  - job_name: docker-containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 10s
+        filters:
+          - name: label
+            values: ["com.recrute.service"]
+    relabel_configs:
+      - source_labels: [__meta_docker_container_label_com_recrute_service]
+        target_label: service
+        action: replace
+      - source_labels: [__meta_docker_container_name]
+        target_label: container
+        action: replace
+      - source_labels: [__meta_docker_container_label_com_docker_compose_project]
+        target_label: compose_project
+        action: replace
+      - source_labels: [__meta_docker_container_log_stream]
+        target_label: stream
+        action: replace
+
+  # Java application logs (fichiers locaux)
+  - job_name: java-apps
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: java-apps
+          __path__: /var/log/apps/*.log
+    pipeline_stages:
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}'
+          max_wait_time: 3s
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3})\s+(?P<level>[A-Z]+)\s+\[(?P<thread>[^\]]+)\]\s+(?P<class>[^:]+):(?P<message>.*)$'
+      - labels:
+          level:
+          class:
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02 15:04:05.000'
+      - output:
+          source: message
+
+  # System logs
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\w{3}\s+\d+\s+\d+:\d+:\d+)\s+(?P<host>[^\s]+)\s+(?P<service>[^:]+):(?P<message>.*)$'
+      - labels:
+          service:
+          host:
+      - timestamp:
+          source: timestamp
+          format: 'Jan 2 15:04:05'
+
+  # Nginx access logs
+  - job_name: nginx-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx-access
+          __path__: /var/log/nginx/access.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<request_method>\S+)\s+(?P<request_uri>[^\s]+)\s+(?P<server_protocol>\S+)" (?P<status>\d{3}) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
+      - labels:
+          status:
+          request_method:
+      - metrics:
+          count:
+            type: Counter
+            description: "Nginx access requests"
+            source: request_uri
+            config:
+              value: 1
+              action: inc
+      - timestamp:
+          source: time_local
+          format: '02/Jan/2006:15:04:05 -0700'
+
+  # Nginx error logs
+  - job_name: nginx-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx-error
+          __path__: /var/log/nginx/error.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+\[(?P<level>\w+)\]\s+(?P<pid>\d+)#(?P<tid>\d+):\s+\*(?P<connection>\d+)\s+(?P<message>.*)$'
+      - labels:
+          level:
