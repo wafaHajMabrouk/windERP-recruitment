@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  postgres-test:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+      - "5432:5432"
+
+  redis-test:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  kafka-test:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test:2181
+    ports:
+      - "9092:9092"
+
+  zookeeper-test:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
