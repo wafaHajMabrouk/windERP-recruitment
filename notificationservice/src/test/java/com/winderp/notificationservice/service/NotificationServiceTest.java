@@ -12,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +25,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
-    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, 1, 15, 12, 0);
-
+    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, Month.JANUARY, 15, 14, 30);
     @Mock
     private NotificationRepository notificationRepository;
 

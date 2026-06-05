@@ -2,7 +2,9 @@ package com.winderp.notificationservice.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -21,15 +23,33 @@ public class Notification {
     private Long interviewId;
 
     @Column(nullable = false)
-    private String status = "NEW"; // "SENT"
+    private String status;
 
     @Column(nullable = false)
-    private Boolean readed = false;
+    private Boolean readed;
 
     @Column(nullable = false)
-    private LocalDateTime dateEnvoi = LocalDateTime.now();
+    private LocalDateTime dateEnvoi;
+
     @Column(columnDefinition = "TEXT")
     private String message;
 
     @Column(nullable = false)
-    private String type = "INFO"; }
+    private String type;
+
+    @PrePersist
+    public void prePersist() {
+        if (status == null) {
+            status = "NEW";
+        }
+        if (readed == null) {
+            readed = false;
+        }
+        if (dateEnvoi == null) {
+            dateEnvoi = LocalDateTime.now(ZoneId.of("UTC"));
+        }
+        if (type == null) {
+            type = "INFO";
+        }
+    }
+}

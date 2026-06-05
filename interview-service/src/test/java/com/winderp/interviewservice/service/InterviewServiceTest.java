@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class InterviewServiceTest {
 
-    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, 1, 15, 10, 0);
+    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0);
 
     @Mock
     private InterviewRepository interviewRepository;

@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(NotificationController.class)
 class NotificationControllerTest {
 
-    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, 1, 15, 14, 30);
+    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, Month.JANUARY, 15, 14, 30);
 
     @Autowired
     private MockMvc mockMvc;

@@ -3,24 +3,33 @@ package com.winderp.notificationservice.service;
 import com.winderp.notificationservice.models.Notification;
 import com.winderp.notificationservice.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationService {
 
     private final NotificationRepository repository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    // ✅ Créer et sauvegarder une notification
+    // Créer et sauvegarder une notification
     public Notification saveNotification(Notification notification) {
-        // Date et statut
-        notification.setDateEnvoi(LocalDateTime.now());
+        // Date et statut avec fuseau UTC
+        notification.setDateEnvoi(LocalDateTime.now(ZoneId.of("UTC")));
         notification.setReaded(false);
+        if (notification.getStatus() == null) {
+            notification.setStatus("NEW");
+        }
+        if (notification.getType() == null) {
+            notification.setType("INFO");
+        }
 
         // Sauvegarde dans la base
         Notification saved = repository.save(notification);
@@ -31,16 +40,18 @@ public class NotificationService {
         return saved;
     }
 
-    // 🔹 Notification automatique depuis un autre service
+    // Notification automatique depuis un autre service
     public void notifyUser(Long userId, String message) {
-        Notification notification = new Notification();
-        notification.setUserId(userId);
-        notification.setMessage(message);
-        notification.setReaded(false);
-        notification.setDateEnvoi(LocalDateTime.now());
+        Notification notification = Notification.builder()
+                .userId(userId)
+                .message(message)
+                .readed(false)
+                .dateEnvoi(LocalDateTime.now(ZoneId.of("UTC")))
+                .status("NEW")
+                .type("INFO")
+                .build();
 
-        repository.save(notification); // ✅ sauvegarde obligatoire
-
+        repository.save(notification);
         messagingTemplate.convertAndSend("/topic/notifications/" + userId, notification);
     }
 
@@ -49,7 +60,8 @@ public class NotificationService {
     }
 
     public void markAsRead(Long id) {
-        Notification n = repository.findById(id).orElseThrow();
+        Notification n = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notification non trouvée id=" + id));
         n.setReaded(true);
         repository.save(n);
     }
