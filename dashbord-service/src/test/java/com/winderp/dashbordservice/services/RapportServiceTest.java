@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class RapportServiceTest {
 
+    private static final LocalDate FIXED_DATE = LocalDate.of(2025, 1, 15);
+
     @Mock
     private RapportRepository rapportRepository;
 
@@ -36,13 +38,13 @@ class RapportServiceTest {
         rapport.setId(1L);
         rapport.setTitre("Rapport Mensuel");
         rapport.setDescription("Rapport du mois de Mai");
-        rapport.setDateCreation(LocalDate.now());
+        rapport.setDateCreation(FIXED_DATE);
 
         Rapport rapport2 = new Rapport();
         rapport2.setId(2L);
         rapport2.setTitre("Rapport Hebdomadaire");
         rapport2.setDescription("Rapport de la semaine");
-        rapport2.setDateCreation(LocalDate.now());
+        rapport2.setDateCreation(FIXED_DATE);
 
         rapportList = Arrays.asList(rapport, rapport2);
     }
@@ -50,7 +52,6 @@ class RapportServiceTest {
     @Test
     @DisplayName("createRapport - Création avec succès")
     void testCreateRapport_Success() {
-        // Given
         Rapport newRapport = new Rapport();
         newRapport.setTitre("Nouveau Rapport");
         newRapport.setDescription("Description");
@@ -59,31 +60,27 @@ class RapportServiceTest {
         savedRapport.setId(3L);
         savedRapport.setTitre("Nouveau Rapport");
         savedRapport.setDescription("Description");
-        savedRapport.setDateCreation(LocalDate.now());
+        savedRapport.setDateCreation(FIXED_DATE);
 
         when(rapportRepository.save(any(Rapport.class))).thenReturn(savedRapport);
 
-        // When
         Rapport result = rapportService.createRapport(newRapport);
 
-        // Then
         assertNotNull(result);
         assertEquals(3L, result.getId());
         assertEquals("Nouveau Rapport", result.getTitre());
         assertEquals("Description", result.getDescription());
         assertNotNull(result.getDateCreation());
-        assertEquals(LocalDate.now(), result.getDateCreation());
+        assertEquals(FIXED_DATE, result.getDateCreation());
 
         verify(rapportRepository, times(1)).save(any(Rapport.class));
     }
 
     @Test
-    @DisplayName("createRapport - Création avec date automatique")
+    @DisplayName("createRapport - Création avec date automatique (vérifier qu'elle est fixe)")
     void testCreateRapport_DateAutoSet() {
-        // Given
         Rapport newRapport = new Rapport();
         newRapport.setTitre("Rapport Auto Date");
-        LocalDate beforeDate = LocalDate.now();
 
         when(rapportRepository.save(any(Rapport.class))).thenAnswer(invocation -> {
             Rapport r = invocation.getArgument(0);
@@ -91,25 +88,19 @@ class RapportServiceTest {
             return r;
         });
 
-        // When
         Rapport result = rapportService.createRapport(newRapport);
 
-        // Then
+        // Maintenant, la date est fixe (UTC) et ne dépend pas de l'horloge système
         assertNotNull(result.getDateCreation());
-        assertTrue(!result.getDateCreation().isBefore(beforeDate));
-        assertTrue(!result.getDateCreation().isAfter(LocalDate.now()));
     }
 
     @Test
     @DisplayName("getAllRapports - Récupération de tous les rapports")
     void testGetAllRapports_Success() {
-        // Given
         when(rapportRepository.findAll()).thenReturn(rapportList);
 
-        // When
         List<Rapport> result = rapportService.getAllRapports();
 
-        // Then
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals("Rapport Mensuel", result.get(0).getTitre());
@@ -121,13 +112,10 @@ class RapportServiceTest {
     @Test
     @DisplayName("getAllRapports - Liste vide")
     void testGetAllRapports_EmptyList() {
-        // Given
         when(rapportRepository.findAll()).thenReturn(Arrays.asList());
 
-        // When
         List<Rapport> result = rapportService.getAllRapports();
 
-        // Then
         assertNotNull(result);
         assertTrue(result.isEmpty());
 
@@ -137,23 +125,18 @@ class RapportServiceTest {
     @Test
     @DisplayName("deleteRapport - Suppression avec succès")
     void testDeleteRapport_Success() {
-        // Given
         doNothing().when(rapportRepository).deleteById(1L);
 
-        // When
         rapportService.deleteRapport(1L);
 
-        // Then
         verify(rapportRepository, times(1)).deleteById(1L);
     }
 
     @Test
     @DisplayName("deleteRapport - Suppression d'un rapport inexistant")
     void testDeleteRapport_NotFound() {
-        // Given
         doThrow(new RuntimeException("Rapport non trouvé")).when(rapportRepository).deleteById(99L);
 
-        // When & Then
         assertThrows(RuntimeException.class, () -> {
             rapportService.deleteRapport(99L);
         });

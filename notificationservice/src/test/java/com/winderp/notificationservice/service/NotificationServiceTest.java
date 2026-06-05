@@ -24,6 +24,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
+    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, 1, 15, 12, 0);
+
     @Mock
     private NotificationRepository notificationRepository;
 
@@ -45,7 +47,7 @@ class NotificationServiceTest {
                 .candidatureId(1000L)
                 .status("SENT")
                 .readed(false)
-                .dateEnvoi(LocalDateTime.now().minusDays(1))
+                .dateEnvoi(FIXED_DATE.minusDays(1))
                 .message("Votre candidature a été acceptée")
                 .type("SUCCESS")
                 .build();
@@ -55,7 +57,7 @@ class NotificationServiceTest {
                 .userId(100L)
                 .status("SENT")
                 .readed(true)
-                .dateEnvoi(LocalDateTime.now().minusHours(5))
+                .dateEnvoi(FIXED_DATE.minusHours(5))
                 .message("Entretien programmé demain à 14h")
                 .type("INFO")
                 .build();
@@ -79,7 +81,7 @@ class NotificationServiceTest {
                 .candidatureId(1000L)
                 .status("SENT")
                 .readed(false)
-                .dateEnvoi(LocalDateTime.now())
+                .dateEnvoi(FIXED_DATE)
                 .message("Test notification")
                 .type("INFO")
                 .build();
@@ -106,7 +108,7 @@ class NotificationServiceTest {
                 .userId(200L)
                 .message("Nouvelle notification")
                 .readed(false)
-                .dateEnvoi(LocalDateTime.now())
+                .dateEnvoi(FIXED_DATE)
                 .build();
 
         when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
@@ -175,7 +177,7 @@ class NotificationServiceTest {
     @Test
     @DisplayName("markAllAsRead - Marquer toutes les notifications d'un user comme lues")
     void testMarkAllAsRead_Success() {
-        List<Notification> unreadNotifications = Arrays.asList(notification1); // notification1 readed = false
+        List<Notification> unreadNotifications = Arrays.asList(notification1);
         when(notificationRepository.findByUserIdAndReadedFalse(100L)).thenReturn(unreadNotifications);
         when(notificationRepository.saveAll(anyList())).thenReturn(unreadNotifications);
 

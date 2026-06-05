@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;  // ✅ OK pour Spring Boot 3.2.3
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -26,10 +27,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(InterviewController.class)
 class InterviewControllerTest {
 
+    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, 1, 15, 10, 0);
+
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean  // ✅ Utiliser @MockBean pour Spring Boot 3.2.3
+    @MockBean
     private InterviewService interviewService;
 
     @Autowired
@@ -41,25 +44,23 @@ class InterviewControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Interview 1
         interview1 = new Interview();
         interview1.setId(1L);
         interview1.setCandidatureId(100L);
         interview1.setRecruteurId(10L);
         interview1.setType("TECHNIQUE");
         interview1.setStatut("PLANIFIE");
-        interview1.setDateHeure(LocalDateTime.now().plusDays(2).toString());
+        interview1.setDateHeure(FIXED_DATE.plusDays(2).toString());
         interview1.setCandidateName("Jean Dupont");
         interview1.setRecruteurName("Pierre Martin");
 
-        // Interview 2
         interview2 = new Interview();
         interview2.setId(2L);
         interview2.setCandidatureId(101L);
         interview2.setRecruteurId(10L);
         interview2.setType("RH");
         interview2.setStatut("TERMINE");
-        interview2.setDateHeure(LocalDateTime.now().minusDays(1).toString());
+        interview2.setDateHeure(FIXED_DATE.minusDays(1).toString());
         interview2.setFeedback("Très bon candidat");
         interview2.setScore(85.5);
         interview2.setCandidateName("Sophie Martin");
@@ -93,10 +94,9 @@ class InterviewControllerTest {
         newInterview.setRecruteurId(10L);
         newInterview.setType("TECHNIQUE");
         newInterview.setStatut("PLANIFIE");
-        newInterview.setDateHeure(LocalDateTime.now().plusDays(2).toString());
+        newInterview.setDateHeure(FIXED_DATE.plusDays(2).toString());
 
         when(interviewService.createInterview(any(Interview.class))).thenReturn(interview1);
-        when(interviewService.getById(1L)).thenReturn(interview1);
 
         mockMvc.perform(post("/api/interviews")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,13 +108,24 @@ class InterviewControllerTest {
     @Test
     @DisplayName("GET /api/interviews/{id} - Par ID")
     void testGetInterviewById_Success() throws Exception {
-        when(interviewService.getById(1L)).thenReturn(interview1);
+        when(interviewService.getById(1L)).thenReturn(Optional.of(interview1));
 
         mockMvc.perform(get("/api/interviews/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.candidateName").value("Jean Dupont"));
+    }
+
+    @Test
+    @DisplayName("GET /api/interviews/{id} - ID inexistant")
+    void testGetInterviewById_NotFound() throws Exception {
+        when(interviewService.getById(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/interviews/99")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$").value("Interview non trouvée"));
     }
 
     @Test
@@ -150,6 +161,17 @@ class InterviewControllerTest {
     }
 
     @Test
+    @DisplayName("DELETE /api/interviews/{id} - inexistant")
+    void testDeleteInterview_NotFound() throws Exception {
+        when(interviewService.deleteInterviewById(99L)).thenReturn(false);
+
+        mockMvc.perform(delete("/api/interviews/99")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$").value("Interview non trouvée"));
+    }
+
+    @Test
     @DisplayName("GET /api/interviews/count")
     void testGetTotalInterviews() throws Exception {
         when(interviewService.count()).thenReturn(5L);
@@ -171,7 +193,7 @@ class InterviewControllerTest {
         updatedInterview.setScore(90.0);
         updatedInterview.setFeedback("Excellent candidat");
 
-        when(interviewService.getById(1L)).thenReturn(interview1);
+        when(interviewService.getById(1L)).thenReturn(Optional.of(interview1));
         when(interviewService.save(any(Interview.class))).thenReturn(updatedInterview);
 
         mockMvc.perform(put("/api/interviews/1/evaluation")
@@ -180,6 +202,21 @@ class InterviewControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.score").value(90.0))
                 .andExpect(jsonPath("$.feedback").value("Excellent candidat"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/interviews/{id}/evaluation - interview inexistante")
+    void testAddEvaluation_NotFound() throws Exception {
+        Map<String, Object> evaluation = new HashMap<>();
+        evaluation.put("score", 90.0);
+
+        when(interviewService.getById(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/interviews/99/evaluation")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(evaluation)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$").value("Interview non trouvée"));
     }
 
     @Test

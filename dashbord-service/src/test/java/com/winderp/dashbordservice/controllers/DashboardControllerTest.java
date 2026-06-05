@@ -42,9 +42,11 @@ class DashboardControllerTest {
     private Rapport rapport;
     private List<Rapport> rapportList;
 
+    // Date fixe pour les tests
+    private static final LocalDate FIXED_DATE = LocalDate.of(2025, 1, 15);
+
     @BeforeEach
     void setUp() {
-        // Initialisation des statistiques
         dashboardStats = new DashboardStats();
         dashboardStats.setTotalCandidatures(100);
         dashboardStats.setCandidaturesNouvelles(25);
@@ -52,23 +54,21 @@ class DashboardControllerTest {
         dashboardStats.setEntretiensPlanifies(15);
         dashboardStats.setOffresOuvertes(10);
         dashboardStats.setOffresFermees(5);
-        dashboardStats.setNotificationsEnvoyees(80);
+
         dashboardStats.setTauxAcceptation(40.0);
         dashboardStats.setScoreMoyen(85.5);
 
-        // Initialisation d'un rapport
         rapport = new Rapport();
         rapport.setId(1L);
         rapport.setTitre("Rapport Mensuel");
         rapport.setDescription("Rapport du mois de Mai");
-        rapport.setDateCreation(LocalDate.now());
+        rapport.setDateCreation(FIXED_DATE);
 
-        // Liste des rapports
         Rapport rapport2 = new Rapport();
         rapport2.setId(2L);
         rapport2.setTitre("Rapport Hebdomadaire");
         rapport2.setDescription("Rapport de la semaine");
-        rapport2.setDateCreation(LocalDate.now());
+        rapport2.setDateCreation(FIXED_DATE);
 
         rapportList = Arrays.asList(rapport, rapport2);
     }
@@ -121,7 +121,7 @@ class DashboardControllerTest {
         savedRapport.setId(3L);
         savedRapport.setTitre("Nouveau Rapport");
         savedRapport.setDescription("Description du nouveau rapport");
-        savedRapport.setDateCreation(LocalDate.now());
+        savedRapport.setDateCreation(FIXED_DATE);
 
         when(rapportService.createRapport(any(Rapport.class))).thenReturn(savedRapport);
 
@@ -132,7 +132,7 @@ class DashboardControllerTest {
                 .andExpect(jsonPath("$.id").value(3))
                 .andExpect(jsonPath("$.titre").value("Nouveau Rapport"))
                 .andExpect(jsonPath("$.description").value("Description du nouveau rapport"))
-                .andExpect(jsonPath("$.dateCreation").value(LocalDate.now().toString()));
+                .andExpect(jsonPath("$.dateCreation").value(FIXED_DATE.toString()));
 
         verify(rapportService, times(1)).createRapport(any(Rapport.class));
     }
@@ -146,7 +146,7 @@ class DashboardControllerTest {
         mockMvc.perform(post("/api/dashboard/rapports")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRapport)))
-                .andExpect(status().isOk()); // La validation sera gérée par le service
+                .andExpect(status().isOk());
 
         verify(rapportService, times(1)).createRapport(any(Rapport.class));
     }
@@ -200,7 +200,7 @@ class DashboardControllerTest {
 
         mockMvc.perform(delete("/api/dashboard/rapports/99")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()); // La méthode retourne void, pas de gestion d'erreur
+                .andExpect(status().isOk());
 
         verify(rapportService, times(1)).deleteRapport(99L);
     }

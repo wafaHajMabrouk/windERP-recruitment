@@ -3,7 +3,7 @@ package com.winderp.interviewservice.service;
 import com.winderp.interviewservice.client.CandidateClient;
 import com.winderp.interviewservice.client.NotificationClient;
 import com.winderp.interviewservice.client.RecruteurClient;
-import com.winderp.interviewservice.client.authClient;
+import com.winderp.interviewservice.client.AuthClient;
 import com.winderp.interviewservice.models.Interview;
 import com.winderp.interviewservice.repository.InterviewRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +26,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class InterviewServiceTest {
 
+    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, 1, 15, 10, 0);
+
     @Mock
     private InterviewRepository interviewRepository;
 
@@ -39,7 +41,7 @@ class InterviewServiceTest {
     private NotificationClient notificationClient;
 
     @Mock
-    private authClient authClient;
+    private AuthClient authClient;
 
     @InjectMocks
     private InterviewService interviewService;
@@ -55,7 +57,7 @@ class InterviewServiceTest {
         interview.setRecruteurId(10L);
         interview.setType("TECHNIQUE");
         interview.setStatut("PLANIFIE");
-        interview.setDateHeure(LocalDateTime.now().plusDays(2).toString());
+        interview.setDateHeure(FIXED_DATE.plusDays(2).toString());
 
         Interview interview2 = new Interview();
         interview2.setId(2L);
@@ -107,8 +109,7 @@ class InterviewServiceTest {
             interviewService.createInterview(interview);
         });
 
-        assertEquals("Impossible de planifier un entretien : la candidature n'est pas acceptée (statut != ACCEPTEE)",
-                exception.getMessage());
+        assertEquals("Impossible de planifier un entretien : la candidature n'est pas acceptée", exception.getMessage());
         verify(interviewRepository, never()).save(any());
     }
 
@@ -150,27 +151,27 @@ class InterviewServiceTest {
     }
 
     @Test
-    @DisplayName("getById - Récupérer entretien par ID avec succès")
+    @DisplayName("getById - Récupérer entretien par ID avec succès (retourne Optional)")
     void testGetById_Success() {
         when(interviewRepository.findById(1L)).thenReturn(Optional.of(interview));
         when(candidateClient.getCandidateNameByCandidatureId(100L)).thenReturn("Jean Dupont");
         when(recruteurClient.getRecruteurName(10L)).thenReturn("Pierre Martin");
 
-        Interview result = interviewService.getById(1L);
+        Optional<Interview> result = interviewService.getById(1L);
 
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Jean Dupont", result.getCandidateName());
+        assertTrue(result.isPresent());
+        assertEquals(1L, result.get().getId());
+        assertEquals("Jean Dupont", result.get().getCandidateName());
     }
 
     @Test
-    @DisplayName("getById - Entretien non trouvé")
+    @DisplayName("getById - Entretien non trouvé (retourne Optional vide)")
     void testGetById_NotFound() {
         when(interviewRepository.findById(99L)).thenReturn(Optional.empty());
 
-        Interview result = interviewService.getById(99L);
+        Optional<Interview> result = interviewService.getById(99L);
 
-        assertNull(result);
+        assertFalse(result.isPresent());
     }
 
     @Test

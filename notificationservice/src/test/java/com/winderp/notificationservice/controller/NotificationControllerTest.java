@@ -17,13 +17,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(NotificationController.class)
 class NotificationControllerTest {
+
+    private static final LocalDateTime FIXED_DATE = LocalDateTime.of(2025, 1, 15, 14, 30);
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,7 +41,6 @@ class NotificationControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Notification 1
         notification1 = Notification.builder()
                 .id(1L)
                 .userId(100L)
@@ -48,19 +48,18 @@ class NotificationControllerTest {
                 .interviewId(10000L)
                 .status("SENT")
                 .readed(false)
-                .dateEnvoi(LocalDateTime.now().minusDays(1))
+                .dateEnvoi(FIXED_DATE.minusDays(1))
                 .message("Votre candidature a été acceptée")
                 .type("SUCCESS")
                 .build();
 
-        // Notification 2
         notification2 = Notification.builder()
                 .id(2L)
                 .userId(100L)
                 .candidatureId(1001L)
                 .status("SENT")
                 .readed(true)
-                .dateEnvoi(LocalDateTime.now().minusHours(5))
+                .dateEnvoi(FIXED_DATE.minusHours(5))
                 .message("Entretien programmé demain à 14h")
                 .type("INFO")
                 .build();
