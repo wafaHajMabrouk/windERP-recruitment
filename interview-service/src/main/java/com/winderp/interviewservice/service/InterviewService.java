@@ -17,6 +17,11 @@ import java.util.Optional;
 @Slf4j
 public class InterviewService {
 
+    // ✅ Constantes pour les chaînes dupliquées
+    private static final String CANDIDAT_INCONNU = "Candidat inconnu";
+    private static final String RECRUTEUR_INCONNU = "Recruteur inconnu";
+    private static final String OFFRE_INCONNUE = "Offre inconnue";
+
     private final InterviewRepository repository;
     private final CandidateClient candidateClient;
     private final RecruteurClient recruteurClient;
@@ -36,50 +41,90 @@ public class InterviewService {
         this.authClient = authClient;
     }
 
-    // ✅ Une seule méthode pour tout enrichir
-    private void enrichWithExternalData(Interview interview) {
-        if (interview == null) return;
-
-        // 1. Nom du candidat
-        if (candidateClient != null && interview.getCandidatureId() != null) {
-            try {
-                String name = candidateClient.getCandidateNameByCandidatureId(interview.getCandidatureId());
-                interview.setCandidateName((name != null && !name.trim().isEmpty()) ? name : "Candidat inconnu");
-            } catch (Exception e) {
-                log.warn("Erreur nom candidat: {}", e.getMessage());
-                interview.setCandidateName("Candidat inconnu");
-            }
-        } else {
-            interview.setCandidateName("Candidat inconnu");
+    // ✅ Extraction : enrichissement nom candidat
+    private void enrichCandidateName(Interview interview) {
+        if (candidateClient == null || interview.getCandidatureId() == null) {
+            interview.setCandidateName(CANDIDAT_INCONNU);
+            return;
         }
-
-        // 2. Nom du recruteur
-        if (recruteurClient != null && interview.getRecruteurId() != null) {
-            try {
-                String name = recruteurClient.getRecruteurName(interview.getRecruteurId());
-                interview.setRecruteurName(name != null ? name : "Recruteur inconnu");
-            } catch (Exception e) {
-                log.warn("Erreur nom recruteur: {}", e.getMessage());
-                interview.setRecruteurName("Recruteur inconnu");
-            }
-        } else {
-            interview.setRecruteurName("Recruteur inconnu");
-        }
-
-        // 3. ✅ Titre de l'offre (NOUVEAU)
-        if (candidateClient != null && interview.getCandidatureId() != null) {
-            try {
-                String offreTitre = candidateClient.getOffreTitreByCandidatureId(interview.getCandidatureId());
-                interview.setOffreName(offreTitre != null && !offreTitre.trim().isEmpty() ? offreTitre : "Offre inconnue");
-            } catch (Exception e) {
-                log.warn("Impossible de récupérer l'offre pour candidature {} : {}", interview.getCandidatureId(), e.getMessage());
-                interview.setOffreName("Offre inconnue");
-            }
-        } else {
-            interview.setOffreName("Offre inconnue");
+        try {
+            String name = candidateClient.getCandidateNameByCandidatureId(interview.getCandidatureId());
+            interview.setCandidateName((name != null && !name.trim().isEmpty()) ? name : CANDIDAT_INCONNU);
+        } catch (Exception e) {
+            log.warn("Erreur nom candidat: {}", e.getMessage());
+            interview.setCandidateName(CANDIDAT_INCONNU);
         }
     }
 
+    // ✅ Extraction : enrichissement nom recruteur
+    private void enrichRecruteurName(Interview interview) {
+        if (recruteurClient == null || interview.getRecruteurId() == null) {
+            interview.setRecruteurName(RECRUTEUR_INCONNU);
+            return;
+        }
+        try {
+            String name = recruteurClient.getRecruteurName(interview.getRecruteurId());
+            interview.setRecruteurName(name != null ? name : RECRUTEUR_INCONNU);
+        } catch (Exception e) {
+            log.warn("Erreur nom recruteur: {}", e.getMessage());
+            interview.setRecruteurName(RECRUTEUR_INCONNU);
+        }
+    }
+
+    // ✅ Extraction : enrichissement titre offre
+    private void enrichOffreTitre(Interview interview) {
+        if (candidateClient == null || interview.getCandidatureId() == null) {
+            interview.setOffreName(OFFRE_INCONNUE);
+            return;
+        }
+        try {
+            String offreTitre = candidateClient.getOffreTitreByCandidatureId(interview.getCandidatureId());
+            interview.setOffreName(offreTitre != null && !offreTitre.trim().isEmpty() ? offreTitre : OFFRE_INCONNUE);
+        } catch (Exception e) {
+            log.warn("Impossible de récupérer l'offre pour candidature {} : {}", interview.getCandidatureId(), e.getMessage());
+            interview.setOffreName(OFFRE_INCONNUE);
+        }
+    }
+
+    // ✅ Méthode principale d'enrichissement (complexité réduite)
+    private void enrichWithExternalData(Interview interview) {
+        if (interview == null) return;
+        enrichCandidateName(interview);
+        enrichRecruteurName(interview);
+        enrichOffreTitre(interview);
+    }
+
+    // ✅ Validation de la candidature (extraite pour réduire complexité de createInterview)
+    private void validateCandidature(Long candidatureId) {
+        if (candidateClient == null) {
+            log.warn("CandidateClient non disponible – validation ignorée");
+            return;
+        }
+        Boolean exists = candidateClient.existsById(candidatureId);
+        if (exists == null || !exists) {
+            throw new IllegalArgumentException("Candidature inexistante : " + candidatureId);
+        }
+        Boolean isAccepted = candidateClient.isCandidatureAccepted(candidatureId);
+        if (isAccepted == null || !isAccepted) {
+            throw new IllegalStateException("Impossible de planifier un entretien : la candidature n'est pas acceptée");
+        }
+    }
+
+    // ✅ Envoi de notification (extraite)
+    private void sendNotificationIfNeeded(Interview interview) {
+        if (notificationClient == null || candidateClient == null) return;
+        try {
+            Long candidatId = candidateClient.getCandidatIdByCandidatureId(interview.getCandidatureId());
+            if (candidatId != null) {
+                String message = "Entretien programmé le " + interview.getDateHeure() + " (Type: " + interview.getType() + ")";
+                notificationClient.sendNotification(candidatId, message);
+            }
+        } catch (Exception e) {
+            log.error("Erreur notification : {}", e.getMessage());
+        }
+    }
+
+    // ✅ createInterview refactorisée (complexité cognitive maintenant < 15)
     public Interview createInterview(Interview interview) {
         if (interview.getCandidatureId() == null) {
             throw new IllegalArgumentException("CandidatureId est obligatoire");
@@ -88,37 +133,11 @@ public class InterviewService {
             throw new IllegalArgumentException("RecruteurId est obligatoire");
         }
 
-        if (candidateClient != null) {
-            Boolean exists = candidateClient.existsById(interview.getCandidatureId());
-            if (exists == null || !exists) {
-                throw new RuntimeException("Candidature inexistante : " + interview.getCandidatureId());
-            }
-
-            Boolean isAccepted = candidateClient.isCandidatureAccepted(interview.getCandidatureId());
-            if (isAccepted == null || !isAccepted) {
-                throw new RuntimeException("Impossible de planifier un entretien : la candidature n'est pas acceptée");
-            }
-        } else {
-            log.warn("CandidateClient non disponible – validation ignorée");
-        }
+        validateCandidature(interview.getCandidatureId());
 
         Interview saved = repository.save(interview);
+        sendNotificationIfNeeded(saved);
 
-        if (notificationClient != null) {
-            try {
-                if (candidateClient != null) {
-                    Long candidatId = candidateClient.getCandidatIdByCandidatureId(interview.getCandidatureId());
-                    if (candidatId != null) {
-                        String message = "Entretien programmé le " + saved.getDateHeure() + " (Type: " + saved.getType() + ")";
-                        notificationClient.sendNotification(candidatId, message);
-                    }
-                }
-            } catch (Exception e) {
-                log.error("Erreur notification : {}", e.getMessage());
-            }
-        }
-
-        // ✅ Enrichir avant retour
         enrichWithExternalData(saved);
         return saved;
     }
@@ -129,14 +148,13 @@ public class InterviewService {
         return interviews;
     }
 
-    public Interview getById(Long id) {
-        Optional<Interview> optional = repository.findById(id);
-        if (optional.isPresent()) {
-            Interview interview = optional.get();
-            enrichWithExternalData(interview);
-            return interview;
-        }
-        return null;
+    // ✅ Retourne Optional au lieu de null
+    public Optional<Interview> getById(Long id) {
+        return repository.findById(id)
+                .map(interview -> {
+                    enrichWithExternalData(interview);
+                    return interview;
+                });
     }
 
     public List<Interview> getByCandidatureId(Long candidatureId) {

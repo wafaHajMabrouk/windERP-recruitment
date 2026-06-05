@@ -7,6 +7,7 @@ import com.winderp.candidateservice.models.Status;
 import com.winderp.candidateservice.models.Statut;
 import com.winderp.candidateservice.repository.CandidatureRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +19,17 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j  // ✅ Logger au lieu de System.out
 public class CandidatureService {
 
     private final CandidatureRepository repository;
     private final OffreService offreService;
     private final AuthClient authClient;
     private final EmailService emailService;
+
+    // Constantes pour éviter les chaînes dupliquées (optionnel, mais bonne pratique)
+    private static final String CANDIDATURE_INTROUVABLE = "Candidature introuvable id=";
+    private static final String CANDIDAT_INCONNU = "Candidat inconnu";
 
     public Candidature create(Candidature c) {
         boolean exists = repository.existsByCandidateIdAndOffreId(
@@ -32,13 +38,13 @@ public class CandidatureService {
         );
 
         if (exists) {
-            throw new RuntimeException(" Vous avez déjà postulé à cette offre");
+            throw new IllegalArgumentException("Vous avez déjà postulé à cette offre");
         }
 
         Offre offre = offreService.getById(c.getOffre().getId());
 
         if (offre.getStatut() == Statut.FERME) {
-            throw new RuntimeException("Offre fermée");
+            throw new IllegalStateException("Offre fermée");
         }
 
         c.setStatus(Status.EN_ATTENTE);
@@ -50,7 +56,7 @@ public class CandidatureService {
 
     public Candidature update(Long id, Candidature updated) {
         Candidature c = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Candidature introuvable id=" + id));
+                .orElseThrow(() -> new IllegalArgumentException(CANDIDATURE_INTROUVABLE + id));
 
         c.setOffre(updated.getOffre() != null ? updated.getOffre() : c.getOffre());
         c.setCandidateId(updated.getCandidateId() != null ? updated.getCandidateId() : c.getCandidateId());
@@ -59,30 +65,26 @@ public class CandidatureService {
         c.setDecision(updated.getDecision() != null ? updated.getDecision() : c.getDecision());
 
         Candidature saved = repository.save(c);
-
         envoyerEmailDecision(saved);
-
         return saved;
     }
 
     public void delete(Long id) {
         if (!repository.existsById(id))
-            throw new RuntimeException("Candidature introuvable id=" + id);
+            throw new IllegalArgumentException(CANDIDATURE_INTROUVABLE + id);
         repository.deleteById(id);
     }
 
     public List<Candidature> getAll() {
         List<Candidature> list = repository.findAll();
-        System.out.println("TOTAL CANDIDATURES DB = " + list.size());
-        list.forEach(c -> System.out.println(" ID=" + c.getId() +
-                " | score=" + c.getScore() +
-                " | decision=" + c.getDecision()));
+        log.info("TOTAL CANDIDATURES DB = {}", list.size());
+        list.forEach(c -> log.debug(" ID={} | score={} | decision={}", c.getId(), c.getScore(), c.getDecision()));
         return list;
     }
 
     public Candidature getById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Candidature introuvable id=" + id));
+                .orElseThrow(() -> new IllegalArgumentException(CANDIDATURE_INTROUVABLE + id));
     }
 
     public List<Candidature> getByOffre(Long offreId) {
@@ -115,9 +117,7 @@ public class CandidatureService {
         }
 
         Candidature saved = repository.save(c);
-
         envoyerEmailDecision(saved);
-
         return saved;
     }
 
@@ -128,13 +128,12 @@ public class CandidatureService {
 
             if (email != null && !email.isEmpty()) {
                 emailService.envoyerResultatCandidature(candidature, email, nom);
-                System.out.println("Email envoyé pour la candidature ID: " + candidature.getId());
+                log.info("Email envoyé pour la candidature ID: {}", candidature.getId());
             } else {
-                System.err.println("Impossible d'envoyer l'email : adresse email non trouvée pour le candidat " + candidature.getCandidateId());
+                log.warn("Impossible d'envoyer l'email : adresse email non trouvée pour le candidat {}", candidature.getCandidateId());
             }
         } catch (Exception e) {
-            System.err.println(" Erreur lors de l'envoi de l'email pour la candidature " + candidature.getId());
-            e.printStackTrace();
+            log.error("Erreur lors de l'envoi de l'email pour la candidature {}", candidature.getId(), e);
         }
     }
 
@@ -142,14 +141,13 @@ public class CandidatureService {
         return repository.count();
     }
 
-    // ✅ CORRECTION : Ajout du champ offreTitre
     public List<Map<String, Object>> getAcceptedCandidaturesForInterview() {
         List<Candidature> acceptedList = repository.findByStatus(Status.ACCEPTE);
         return acceptedList.stream().map(candidature -> {
             Map<String, Object> map = new HashMap<>();
             map.put("candidatureId", candidature.getId());
 
-            String candidateName = "Candidat inconnu";
+            String candidateName = CANDIDAT_INCONNU;
             try {
                 String name = authClient.getUserName(candidature.getCandidateId());
                 if (name != null && !name.trim().isEmpty()) {
@@ -158,11 +156,11 @@ public class CandidatureService {
                     candidateName = "Candidat #" + candidature.getCandidateId();
                 }
             } catch (Exception e) {
+                log.warn("Erreur récupération nom candidat {}: {}", candidature.getCandidateId(), e.getMessage());
                 candidateName = "Candidat #" + candidature.getCandidateId();
             }
             map.put("candidateName", candidateName);
 
-            // Récupération du titre de l'offre
             String offreTitre = "Offre inconnue";
             try {
                 Offre offre = candidature.getOffre();
@@ -170,7 +168,7 @@ public class CandidatureService {
                     offreTitre = offre.getTitre();
                 }
             } catch (Exception e) {
-                offreTitre = "Offre inconnue";
+                log.warn("Erreur récupération offre pour candidature {}: {}", candidature.getId(), e.getMessage());
             }
             map.put("offreTitre", offreTitre);
 
@@ -191,7 +189,7 @@ public class CandidatureService {
         try {
             return authClient.getUserName(candidateId);
         } catch (Exception e) {
-            System.err.println(" Auth service error: " + e.getMessage());
+            log.error("Auth service error: {}", e.getMessage());
             return "Candidat #" + candidateId;
         }
     }
