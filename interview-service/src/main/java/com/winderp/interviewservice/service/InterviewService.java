@@ -3,7 +3,7 @@ package com.winderp.interviewservice.service;
 import com.winderp.interviewservice.client.CandidateClient;
 import com.winderp.interviewservice.client.RecruteurClient;
 import com.winderp.interviewservice.client.NotificationClient;
-import com.winderp.interviewservice.client.authClient;
+import com.winderp.interviewservice.client.AuthClient;
 import com.winderp.interviewservice.models.Interview;
 import com.winderp.interviewservice.repository.InterviewRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -26,14 +26,14 @@ public class InterviewService {
     private final CandidateClient candidateClient;
     private final RecruteurClient recruteurClient;
     private final NotificationClient notificationClient;
-    private final authClient authClient;
+    private final AuthClient authClient;
 
     @Autowired
     public InterviewService(InterviewRepository repository,
                             @Autowired(required = false) CandidateClient candidateClient,
                             @Autowired(required = false) RecruteurClient recruteurClient,
                             @Autowired(required = false) NotificationClient notificationClient,
-                            @Autowired(required = false) authClient authClient) {
+                            @Autowired(required = false) AuthClient authClient) {
         this.repository = repository;
         this.candidateClient = candidateClient;
         this.recruteurClient = recruteurClient;

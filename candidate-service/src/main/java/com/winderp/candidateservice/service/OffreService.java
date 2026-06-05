@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -16,7 +17,6 @@ public class OffreService {
 
     private final OffreRepository repository;
     private final CandidatureRepository candidatureRepository;
-
 
     public Offre create(Offre offre) {
         offre.setStatut(Statut.OUVERT);
@@ -31,7 +31,7 @@ public class OffreService {
 
     public Offre getById(Long id) {
         Offre offre = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Offre introuvable"));
+                .orElseThrow(() -> new IllegalArgumentException("Offre introuvable id=" + id));
         mettreAJourStatutSiNecessaire(offre);
         return offre;
     }
@@ -53,46 +53,38 @@ public class OffreService {
         repository.delete(offre);
     }
 
-
     public void rafraichirStatutOffre(Long offreId) {
         Offre offre = getById(offreId);
         mettreAJourStatutSiNecessaire(offre);
         repository.save(offre);
     }
 
-
-
-
     public List<Offre> getByCategorie(String categorie) {
         return repository.findByCategorie(categorie);
     }
-
 
     public List<Offre> getByMotCle(String motCle) {
         return repository.findByMotCleContainingIgnoreCase(motCle);
     }
 
-
     public List<Offre> getByStatut(Statut statut) {
         return repository.findByStatut(statut);
     }
-
 
     public List<Offre> getByCategorieAndMotCle(String categorie, String motCle) {
         return repository.findByCategorieAndMotCleContainingIgnoreCase(categorie, motCle);
     }
 
-
     public List<Offre> getOffresOuvertes() {
         return repository.findOffresOuvertes(Statut.OUVERT);
     }
 
-
     private void mettreAJourStatutSiNecessaire(Offre offre) {
         if (offre.getStatut() == Statut.FERME) return;
 
+        LocalDate today = LocalDate.now(ZoneId.of("UTC"));
         boolean estDepassee = offre.getDateLimite() != null &&
-                offre.getDateLimite().isBefore(LocalDate.now());
+                offre.getDateLimite().isBefore(today);
 
         long nbCandidatures = candidatureRepository.countByOffreId(offre.getId());
         boolean maxAtteint = offre.getMaxCandidatures() != null &&
@@ -105,24 +97,18 @@ public class OffreService {
         }
     }
 
-
     public List<Offre> searchOffres(String motCle, String categorie, Statut statut, Boolean ouvertesSeulement) {
         List<Offre> offres;
 
-
         if (motCle != null && !motCle.trim().isEmpty() && categorie != null && !categorie.trim().isEmpty()) {
             offres = repository.findByCategorieAndMotCleContainingIgnoreCase(categorie.trim(), motCle.trim());
-        }
-        else if (motCle != null && !motCle.trim().isEmpty()) {
+        } else if (motCle != null && !motCle.trim().isEmpty()) {
             offres = repository.findByMotCleContainingIgnoreCase(motCle.trim());
-        }
-        else if (categorie != null && !categorie.trim().isEmpty()) {
+        } else if (categorie != null && !categorie.trim().isEmpty()) {
             offres = repository.findByCategorie(categorie.trim());
-        }
-        else {
+        } else {
             offres = repository.findAll();
         }
-
 
         if (statut != null) {
             offres = offres.stream()
@@ -130,18 +116,16 @@ public class OffreService {
                     .toList();
         }
 
-
         if (Boolean.TRUE.equals(ouvertesSeulement)) {
             offres = offres.stream()
                     .filter(o -> o.getStatut() == Statut.OUVERT)
                     .toList();
         }
 
-
         offres.forEach(this::mettreAJourStatutSiNecessaire);
-
         return offres;
     }
+
     public long countOffresOuvertes() {
         return repository.countByStatut(Statut.OUVERT);
     }
