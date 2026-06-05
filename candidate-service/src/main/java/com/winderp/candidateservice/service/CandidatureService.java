@@ -15,11 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j  // ✅ Logger au lieu de System.out
+@Slf4j
 public class CandidatureService {
 
     private final CandidatureRepository repository;
@@ -27,9 +26,8 @@ public class CandidatureService {
     private final AuthClient authClient;
     private final EmailService emailService;
 
-    // Constantes pour éviter les chaînes dupliquées (optionnel, mais bonne pratique)
     private static final String CANDIDATURE_INTROUVABLE = "Candidature introuvable id=";
-    private static final String CANDIDAT_INCONNU = "Candidat inconnu";
+    private static final String CANDIDAT_PREFIX = "Candidat #";
 
     public Candidature create(Candidature c) {
         boolean exists = repository.existsByCandidateIdAndOffreId(
@@ -143,21 +141,22 @@ public class CandidatureService {
 
     public List<Map<String, Object>> getAcceptedCandidaturesForInterview() {
         List<Candidature> acceptedList = repository.findByStatus(Status.ACCEPTE);
+        // ✅ Remplacement de Collectors.toList() par toList()
         return acceptedList.stream().map(candidature -> {
             Map<String, Object> map = new HashMap<>();
             map.put("candidatureId", candidature.getId());
 
-            String candidateName = CANDIDAT_INCONNU;
+            String candidateName;
             try {
                 String name = authClient.getUserName(candidature.getCandidateId());
                 if (name != null && !name.trim().isEmpty()) {
                     candidateName = name;
                 } else {
-                    candidateName = "Candidat #" + candidature.getCandidateId();
+                    candidateName = CANDIDAT_PREFIX + candidature.getCandidateId();
                 }
             } catch (Exception e) {
                 log.warn("Erreur récupération nom candidat {}: {}", candidature.getCandidateId(), e.getMessage());
-                candidateName = "Candidat #" + candidature.getCandidateId();
+                candidateName = CANDIDAT_PREFIX + candidature.getCandidateId();
             }
             map.put("candidateName", candidateName);
 
@@ -173,7 +172,7 @@ public class CandidatureService {
             map.put("offreTitre", offreTitre);
 
             return map;
-        }).collect(Collectors.toList());
+        }).toList();  // ✅ au lieu de collect(Collectors.toList())
     }
 
     public long countByStatus(Status status) {
@@ -190,7 +189,7 @@ public class CandidatureService {
             return authClient.getUserName(candidateId);
         } catch (Exception e) {
             log.error("Auth service error: {}", e.getMessage());
-            return "Candidat #" + candidateId;
+            return CANDIDAT_PREFIX + candidateId;
         }
     }
 
