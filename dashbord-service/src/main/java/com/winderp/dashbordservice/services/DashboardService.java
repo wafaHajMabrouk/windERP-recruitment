@@ -17,13 +17,13 @@ public class DashboardService {
     private final AuthClient authClient;
     private final CandidatureClient candidatureClient;
     private final InterviewClient interviewClient;
-    private final NotificationClient notificationClient;
+
 
     public DashboardStats getStats() {
 
         DashboardStats stats = new DashboardStats();
 
-        // 🔥 Appels parallèles
+
         CompletableFuture<Integer> totalCandidatures =
                 CompletableFuture.supplyAsync(() -> safe(() -> candidatureClient.getTotalCandidatures(), 0));
 
@@ -42,24 +42,22 @@ public class DashboardService {
         CompletableFuture<Integer> offresFermees =
                 CompletableFuture.supplyAsync(() -> safe(() -> candidatureClient.getOffresFermeesCount(), 0));
 
-        CompletableFuture<Integer> notifications =
-                CompletableFuture.supplyAsync(() -> safe(() -> notificationClient.getTotalNotifications(), 0));
+
 
         CompletableFuture.allOf(
-                totalCandidatures, accepted, newCandidates,
-                interviews, offresOuvertes, offresFermees, notifications
+                totalCandidatures, accepted, newCandidates
+
         ).join();
 
-        // 🔹 Set values
+
         stats.setTotalCandidatures(totalCandidatures.join());
         stats.setCandidaturesAcceptees(accepted.join());
         stats.setCandidaturesNouvelles(newCandidates.join());
         stats.setEntretiensPlanifies(interviews.join());
         stats.setOffresOuvertes(offresOuvertes.join());
         stats.setOffresFermees(offresFermees.join());
-        stats.setNotificationsEnvoyees(notifications.join());
 
-        // 🔥 KPI intelligents
+
         if (stats.getTotalCandidatures() > 0) {
             stats.setTauxAcceptation(
                     (double) stats.getCandidaturesAcceptees()

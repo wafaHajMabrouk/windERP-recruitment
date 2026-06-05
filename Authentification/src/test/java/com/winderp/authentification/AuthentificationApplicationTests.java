@@ -8,6 +8,7 @@ class AuthentificationApplicationTests {
 
     @Test
     void contextLoads() {
+        // Intentionally left blank: verifies that the Spring Boot application context loads correctly
     }
 
 }

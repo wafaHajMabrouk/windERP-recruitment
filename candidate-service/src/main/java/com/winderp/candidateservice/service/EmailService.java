@@ -26,9 +26,9 @@ public class EmailService {
             message.setFrom("wafa.hajmabrouk396@gmail.com");
 
             mailSender.send(message);
-            System.out.println("✅ Email envoyé à " + emailCandidat);
+            System.out.println(" Email envoyé à " + emailCandidat);
         } catch (Exception e) {
-            System.err.println("❌ Erreur lors de l'envoi de l'email : " + e.getMessage());
+            System.err.println(" Erreur lors de l'envoi de l'email : " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -39,7 +39,7 @@ public class EmailService {
         sb.append("Nous vous remercions pour votre candidature à l'offre : ").append(candidature.getOffre().getTitre()).append("\n\n");
 
         if ("ACCEPTE".equalsIgnoreCase(candidature.getDecision())) {
-            sb.append("🎉 Félicitations ! Votre candidature a été ACCEPTÉE.\n\n");
+            sb.append(" Félicitations ! Votre candidature a été ACCEPTÉE.\n\n");
             sb.append("Score obtenu : ").append(candidature.getScore()).append("/100\n\n");
             sb.append("Un recruteur vous contactera très prochainement pour la suite du processus.\n\n");
         } else if ("REFUSE".equalsIgnoreCase(candidature.getDecision())) {

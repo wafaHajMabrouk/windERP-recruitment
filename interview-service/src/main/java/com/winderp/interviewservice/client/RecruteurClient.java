@@ -5,15 +5,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(
-        name = "auth-service",        // ou "user-service" selon ton Eureka
+        name = "auth-service",
         contextId = "recruteurClient",url = "http://localhost:8087"
 )
 public interface RecruteurClient {
 
-    @GetMapping("/api/recruteurs/{id}/name")   // ← Change ici si l'endpoint réel est différent
+    @GetMapping("/api/recruteurs/{id}/name")
     String getRecruteurName(@PathVariable("id") Long id);
 
-    // Optionnel : si tu veux vérifier l'existence
+
     @GetMapping("/api/recruteurs/exists/{id}")
     Boolean existsById(@PathVariable("id") Long id);
 }

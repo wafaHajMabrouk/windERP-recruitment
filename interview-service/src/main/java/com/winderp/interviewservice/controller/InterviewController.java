@@ -55,7 +55,7 @@ public class InterviewController {
 
         List<Interview> list = interviewService.getByRecruteurId(recruteurId);
 
-        System.out.println("🔥 INTERVIEWS FOUND = " + list.size());
+        System.out.println("INTERVIEWS FOUND = " + list.size());
 
         return ResponseEntity.ok(list);
     }

@@ -18,7 +18,7 @@ public class CandidateController {
 
     private final CandidateService candidateService;
 
-    // CREATE
+
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Candidate candidate) {
         if (candidate.getEmail() == null || candidate.getEmail().isEmpty()
@@ -33,13 +33,13 @@ public class CandidateController {
         }
     }
 
-    // READ ALL
+
     @GetMapping
     public ResponseEntity<List<Candidate>> getAll() {
         return ResponseEntity.ok(candidateService.getAll());
     }
 
-    // READ BY ID
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         try {
@@ -50,7 +50,7 @@ public class CandidateController {
         }
     }
 
-    // UPDATE
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Candidate candidate) {
         try {
@@ -61,7 +61,6 @@ public class CandidateController {
         }
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         if (!candidateService.existsById(id)) {
@@ -72,7 +71,7 @@ public class CandidateController {
         return ResponseEntity.ok("Candidate avec id " + id + " supprimée avec succès");
     }
 
-    // SEARCH BY EMAIL
+
     @GetMapping("/search")
     public ResponseEntity<?> getByEmail(@RequestParam String email) {
         return candidateService.findByEmail(email)
@@ -81,13 +80,13 @@ public class CandidateController {
                         .body("Candidate non trouvée"));
     }
 
-    // EXISTS
+
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(candidateService.existsById(id));
     }
 
-    // COUNT
+
     @GetMapping("/count")
     public ResponseEntity<Long> count() {
         return ResponseEntity.ok(candidateService.count());

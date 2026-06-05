@@ -19,7 +19,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 );
 
-        // Désactiver toutes les fonctionnalités de sécurité
+
         http.httpBasic(basic -> basic.disable());
         http.formLogin(form -> form.disable());
         http.logout(logout -> logout.disable());

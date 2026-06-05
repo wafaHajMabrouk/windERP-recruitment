@@ -28,8 +28,8 @@ public class NotificationClient {
         try {
             restTemplate.postForObject(NOTIFICATION_SERVICE_URL, request, String.class);
         } catch (Exception e) {
-            System.err.println("❌ Échec envoi notification : " + e.getMessage());
-            // Ne pas relancer l'exception pour ne pas bloquer la création de l'interview
+            System.err.println(" Échec envoi notification : " + e.getMessage());
+
         }
     }
 }

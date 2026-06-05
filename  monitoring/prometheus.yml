@@ -1,39 +1,27 @@
 ﻿global:
   scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_timeout: 10s
 
 scrape_configs:
+
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['winderp-prometheus:9090']
 
-  - job_name: 'docker-containers'
-    static_configs:
-      - targets: ['localhost:9323']
-  
-  - job_name: 'spring-boot-apps'
+  - job_name: 'spring-boot-services'
     metrics_path: '/actuator/prometheus'
+    scrape_interval: 20s
+    scrape_timeout: 10s
     static_configs:
       - targets:
-        - 'host.docker.internal:8082'  # API Gateway
-        - 'host.docker.internal:8087'  # Auth Service
-        - 'host.docker.internal:8089'  # Candidate
-        - 'host.docker.internal:8091'  # Interview
-        - 'host.docker.internal:8088'  # Dashboard
-        - 'host.docker.internal:8090'  # Notification
-        - 'host.docker.internal:8762'  # Eureka
-        labels:
-          job: spring-boot
-          tier: microservice
+          - 'winderp-gateway:8082'
+          - 'winderp-auth:8087'
+          - 'winderp-notification:8090'
+          - 'winderp-eureka:8762'
+          - 'winderp-dashboard:8088'   # ajouté
+          - 'winderp-candidate:8089'   # ajouté
+          - 'winderp-interview:8091'   # ajouté
 
-  - job_name: 'postgres'
+  - job_name: 'cadvisor'
     static_configs:
-      - targets: ['host.docker.internal:9187']
-        labels:
-          service: postgresql
-
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['host.docker.internal:9121']
-        labels:
-          service: redis
+      - targets: ['winderp-cadvisor:8080']

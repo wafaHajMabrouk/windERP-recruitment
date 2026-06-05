@@ -44,7 +44,7 @@ public class CandidatureController {
     public List<Candidature> getAllCandidatures() {
         try {
             List<Candidature> list = candidatureService.getAll();
-            System.out.println("🔥 API retourne : " + list.size());
+            System.out.println(" API retourne : " + list.size());
             return list;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur serveur : " + e.getMessage());
@@ -208,10 +208,7 @@ public class CandidatureController {
     public List<Candidature> filterByScore(@RequestParam Double minScore) {
         return candidatureService.filterByScore(minScore);
     }
-    // ✅ FILTER BY MIN SCORE
 
-
-    // ✅ FILTER BY RANGE
     @GetMapping("/filter/score-range")
     public List<Candidature> filterByScoreRange(
             @RequestParam Double min,
@@ -219,11 +216,18 @@ public class CandidatureController {
         return candidatureService.filterByScoreRange(min, max);
     }
 
-    // ✅ FILTER BY SCORE + STATUS
+
     @GetMapping("/filter/score-status")
     public List<Candidature> filterByScoreAndStatus(
             @RequestParam Double score,
             @RequestParam Status status) {
         return candidatureService.filterByScoreAndStatus(score, status);
+
+    }
+    @GetMapping("/{id}/offreTitre")
+    public String getOffreTitreByCandidatureId(@PathVariable Long id) {
+        Candidature candidature = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Candidature non trouvée"));
+        return candidature.getOffre().getTitre();
     }
 }

@@ -3,8 +3,10 @@ package com.winderp.candidateservice.repository;
 import com.winderp.candidateservice.models.Candidature;
 import com.winderp.candidateservice.models.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+@Repository
 public interface CandidatureRepository extends JpaRepository<Candidature, Long> {
 
     List<Candidature> findByOffreId(Long offreId);

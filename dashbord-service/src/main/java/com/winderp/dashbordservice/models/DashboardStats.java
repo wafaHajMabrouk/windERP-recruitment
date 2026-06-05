@@ -11,8 +11,8 @@ public class DashboardStats {
     private long entretiensPlanifies;
     private long offresOuvertes;
     private long offresFermees;
-    private long notificationsEnvoyees;
-    // 🔥 KPI BONUS PFE
+
+
     private double tauxAcceptation;
     private double scoreMoyen;
 }

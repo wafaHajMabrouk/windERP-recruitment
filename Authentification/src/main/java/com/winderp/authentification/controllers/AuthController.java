@@ -19,18 +19,16 @@ import java.util.Map;
 public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-
     private static final String MESSAGE_KEY = "message";
     private static final String ERROR_INTERNAL_SERVER = "Erreur interne du serveur";
-    private static final String ERROR_USER_NOT_FOUND = "Utilisateur non trouvé";
-    private static final String ERROR_INVALID_CREDENTIAL = "Mot de passe incorrect";  // ← renommé
-    private static final String ERROR_ACCOUNT_NOT_APPROVED = "Compte non validé par admin";
 
     private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
+            // On force le rôle à CANDIDATE côté backend (sécurité)
+            user.setRole("CANDIDATE");
             Map<String, Object> response = authService.register(user);
             return ResponseEntity.ok(response);
         } catch (BusinessException e) {
@@ -47,28 +45,17 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> data) {
         try {
             String email = data.get("email");
-            String password = data.get("password"); // NOSONAR  ← Ajoute ce commentaire
+            String password = data.get("password");
             Map<String, Object> response = authService.login(email, password);
             return ResponseEntity.ok(response);
         } catch (BusinessException e) {
-            String message = e.getMessage();
-            log.warn("Erreur d'authentification: {}", message);
-
-            if (isAuthenticationError(message)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of(MESSAGE_KEY, message));
-            }
-            return ResponseEntity.badRequest().body(Map.of(MESSAGE_KEY, message));
+            log.warn("Erreur d'authentification: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(MESSAGE_KEY, e.getMessage()));
         } catch (Exception e) {
             log.error("Erreur interne lors de l'authentification", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(MESSAGE_KEY, ERROR_INTERNAL_SERVER));
         }
-    }
-
-    private boolean isAuthenticationError(String message) {
-        return ERROR_USER_NOT_FOUND.equals(message) ||
-                ERROR_INVALID_CREDENTIAL.equals(message) ||
-                ERROR_ACCOUNT_NOT_APPROVED.equals(message);
     }
 }

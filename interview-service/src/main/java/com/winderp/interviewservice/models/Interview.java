@@ -13,7 +13,7 @@ public class Interview {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long candidatureId;
-    // ← Ne sera plus affiché dans le JSON
+
     private Long recruteurId;
 
     private String type;
@@ -29,4 +29,7 @@ public class Interview {
 
     @Transient
     private String recruteurName;
+    @Transient
+    private String offreName;
+
 }

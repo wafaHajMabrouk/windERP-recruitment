@@ -26,7 +26,7 @@ public class Offre {
     private String categorie;
     private String motCle;
 
-    // NOUVEAUX CHAMPS
+
     private LocalDate dateLimite;
     private Integer maxCandidatures;
 
@@ -37,5 +37,5 @@ public class Offre {
     @JsonIgnore
     private List<Candidature> candidatures;
 
-    // Pas de logique métier ici – déplacée dans le service
+
 }

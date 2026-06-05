@@ -18,7 +18,7 @@ public class RecruteurController {
 
     private final RecruteurService recruteurService;
 
-    // CREATE
+
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Recruteur recruteur) {
         try {
@@ -29,13 +29,13 @@ public class RecruteurController {
         }
     }
 
-    // READ ALL
+
     @GetMapping
     public ResponseEntity<List<Recruteur>> getAll() {
         return ResponseEntity.ok(recruteurService.getAll());
     }
 
-    // READ BY ID
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         try {
@@ -46,7 +46,7 @@ public class RecruteurController {
         }
     }
 
-    // UPDATE
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Recruteur recruteur) {
         try {
@@ -57,7 +57,7 @@ public class RecruteurController {
         }
     }
 
-    // DELETE
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         if (!recruteurService.existsById(id)) {
@@ -68,7 +68,7 @@ public class RecruteurController {
         return ResponseEntity.ok("Recruteur avec id " + id + " supprimé avec succès");
     }
 
-    // SEARCH BY EMAIL
+
     @GetMapping("/search")
     public ResponseEntity<?> getByEmail(@RequestParam String email) {
         return recruteurService.findByEmail(email)
@@ -77,7 +77,7 @@ public class RecruteurController {
                         .body("Recruteur non trouvé"));
     }
 
-    // EXISTS
+
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(recruteurService.existsById(id));

@@ -60,7 +60,6 @@ public class CandidatureService {
 
         Candidature saved = repository.save(c);
 
-
         envoyerEmailDecision(saved);
 
         return saved;
@@ -75,7 +74,7 @@ public class CandidatureService {
     public List<Candidature> getAll() {
         List<Candidature> list = repository.findAll();
         System.out.println("TOTAL CANDIDATURES DB = " + list.size());
-        list.forEach(c -> System.out.println("👉 ID=" + c.getId() +
+        list.forEach(c -> System.out.println(" ID=" + c.getId() +
                 " | score=" + c.getScore() +
                 " | decision=" + c.getDecision()));
         return list;
@@ -117,7 +116,6 @@ public class CandidatureService {
 
         Candidature saved = repository.save(c);
 
-        // Envoyer email au candidat après analyse IA
         envoyerEmailDecision(saved);
 
         return saved;
@@ -125,7 +123,6 @@ public class CandidatureService {
 
     private void envoyerEmailDecision(Candidature candidature) {
         try {
-            // Récupérer l'email du candidat depuis AuthClient
             String email = authClient.getUserEmail(candidature.getCandidateId());
             String nom = authClient.getUserName(candidature.getCandidateId());
 
@@ -145,6 +142,7 @@ public class CandidatureService {
         return repository.count();
     }
 
+    // ✅ CORRECTION : Ajout du champ offreTitre
     public List<Map<String, Object>> getAcceptedCandidaturesForInterview() {
         List<Candidature> acceptedList = repository.findByStatus(Status.ACCEPTE);
         return acceptedList.stream().map(candidature -> {
@@ -163,6 +161,19 @@ public class CandidatureService {
                 candidateName = "Candidat #" + candidature.getCandidateId();
             }
             map.put("candidateName", candidateName);
+
+            // Récupération du titre de l'offre
+            String offreTitre = "Offre inconnue";
+            try {
+                Offre offre = candidature.getOffre();
+                if (offre != null && offre.getTitre() != null && !offre.getTitre().trim().isEmpty()) {
+                    offreTitre = offre.getTitre();
+                }
+            } catch (Exception e) {
+                offreTitre = "Offre inconnue";
+            }
+            map.put("offreTitre", offreTitre);
+
             return map;
         }).collect(Collectors.toList());
     }
@@ -171,11 +182,11 @@ public class CandidatureService {
         return repository.countByStatus(status);
     }
 
-    // Méthode pour renvoyer manuellement l'email
     public void renvoyerEmailManuellement(Long candidatureId) {
         Candidature c = getById(candidatureId);
         envoyerEmailDecision(c);
     }
+
     public String getCandidateName(Long candidateId) {
         try {
             return authClient.getUserName(candidateId);
@@ -184,22 +195,18 @@ public class CandidatureService {
             return "Candidat #" + candidateId;
         }
     }
+
     public Optional<Candidature> getByIdOptional(Long id) {
         return repository.findById(id);
     }
-
-
-
 
     public List<Candidature> filterByScore(Double minScore) {
         return repository.findByScoreGreaterThanEqual(minScore);
     }
 
-
     public List<Candidature> filterByScoreRange(Double min, Double max) {
         return repository.findByScoreBetween(min, max);
     }
-
 
     public List<Candidature> filterByScoreAndStatus(Double score, Status status) {
         return repository.findByScoreGreaterThanEqualAndStatus(score, status);

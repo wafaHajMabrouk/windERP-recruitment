@@ -35,7 +35,7 @@ public class UserService {
 
     public User update(Long id, User updatedUser) {
         User existing = getById(id);
-        // update fields
+
         existing.setNom(updatedUser.getNom());
         existing.setPrenom(updatedUser.getPrenom());
         existing.setEmail(updatedUser.getEmail());
@@ -65,7 +65,7 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
     }
 
-    // Batch fetch (optional but recommended)
+
     public List<User> findAllById(List<Long> ids) {
         return repository.findAllById(ids);
     }

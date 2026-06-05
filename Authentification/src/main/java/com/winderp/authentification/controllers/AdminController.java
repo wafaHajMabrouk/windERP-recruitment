@@ -18,7 +18,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    // CREATE
+
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Admin admin) {
         try {
@@ -29,13 +29,13 @@ public class AdminController {
         }
     }
 
-    // READ ALL
+
     @GetMapping
     public ResponseEntity<List<Admin>> getAll() {
         return ResponseEntity.ok(adminService.getAll());
     }
 
-    // READ BY ID
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         try {
@@ -46,7 +46,6 @@ public class AdminController {
         }
     }
 
-    // UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Admin admin) {
         try {
@@ -57,7 +56,7 @@ public class AdminController {
         }
     }
 
-    // DELETE
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         if (!adminService.existsById(id)) {
@@ -68,7 +67,7 @@ public class AdminController {
         return ResponseEntity.ok("Admin avec id " + id + " supprimé avec succès");
     }
 
-    // CHECK EXISTS
+
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.existsById(id));

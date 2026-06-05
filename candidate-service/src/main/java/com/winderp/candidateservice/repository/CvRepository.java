@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface CvRepository extends JpaRepository<CV, Long> {
 
-    // ✅ Retourne Optional pour pouvoir utiliser orElse()
+
     Optional<CV> findByCandidatureId(Long candidatureId);
 
 }

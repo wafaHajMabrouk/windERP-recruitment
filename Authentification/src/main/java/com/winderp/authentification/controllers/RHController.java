@@ -18,7 +18,7 @@ public class RHController {
 
     private final RHService rhService;
 
-    // CREATE
+
     @PostMapping
     public ResponseEntity<?> create(@RequestBody RH rh) {
         try {
@@ -29,13 +29,13 @@ public class RHController {
         }
     }
 
-    // READ ALL
+
     @GetMapping
     public ResponseEntity<List<RH>> getAll() {
         return ResponseEntity.ok(rhService.getAll());
     }
 
-    // READ BY ID
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         try {
@@ -46,7 +46,7 @@ public class RHController {
         }
     }
 
-    // UPDATE
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody RH rh) {
         try {
@@ -57,7 +57,7 @@ public class RHController {
         }
     }
 
-    // DELETE
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         if (!rhService.existsById(id)) {
@@ -68,7 +68,7 @@ public class RHController {
         return ResponseEntity.ok("RH avec id " + id + " supprimé avec succès");
     }
 
-    // EXISTS
+
     @GetMapping("/exists/{id}")
     public ResponseEntity<Boolean> existsById(@PathVariable Long id) {
         return ResponseEntity.ok(rhService.existsById(id));

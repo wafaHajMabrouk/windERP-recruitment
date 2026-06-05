@@ -17,7 +17,7 @@ public class OffreController {
 
     private final OffreService offreService;
 
-    // ==================== CRUD ====================
+
     @PostMapping
     public Offre create(@RequestBody Offre offre) {
         return offreService.create(offre);
@@ -56,7 +56,7 @@ public class OffreController {
         }
     }
 
-    // ==================== FILTRES AVANCÉS ====================
+
 
     @GetMapping("/search")
     public ResponseEntity<List<Offre>> searchOffres(
@@ -69,7 +69,7 @@ public class OffreController {
         return ResponseEntity.ok(result);
     }
 
-    // Filtres simples (gardés pour compatibilité)
+
     @GetMapping("/categorie/{categorie}")
     public ResponseEntity<List<Offre>> getByCategorie(@PathVariable String categorie) {
         return ResponseEntity.ok(offreService.getByCategorie(categorie));

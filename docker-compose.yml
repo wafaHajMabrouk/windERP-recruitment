@@ -1,192 +1,215 @@
-version: '3.9'
-
 services:
-  # ========================= POSTGRES =========================
+  # ==================== BASE DE DONNÉES ====================
   postgres:
-    image: postgres:15-alpine
+    image: postgres:15
     container_name: winderp-postgres
     environment:
-      POSTGRES_DB: winderp
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: wafawafa
+      POSTGRES_DB: winderp_db
+      POSTGRES_USER: winderp
+      POSTGRES_PASSWORD: winderp123
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
-    networks:
-      - winderp-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d winderp"]
+      test: ["CMD-SHELL", "pg_isready -U winderp -d winderp_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - recrute_winderp-network
 
-  # ========================= EUREKA SERVER =========================
+  # ==================== SERVICE DISCOVERY ====================
   eureka-server:
-    build:
-      context: ./eureka-server
+    build: ./eureka-server
     container_name: winderp-eureka
     ports:
       - "8762:8762"
-    networks:
-      - winderp-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8762
-      EUREKA_CLIENT_REGISTER_WITH_EUREKA: "false"
-      EUREKA_CLIENT_FETCH_REGISTRY: "false"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,metrics
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+    networks:
+      - recrute_winderp-network
 
-  # ========================= API GATEWAY =========================
+  # ==================== API GATEWAY ====================
   api-gateway:
-    build:
-      context: ./api-gateway
+    build: ./api-gateway
     container_name: winderp-gateway
     ports:
       - "8082:8082"
-    networks:
-      - winderp-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8082
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,metrics
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp_db
+      SPRING_DATASOURCE_USERNAME: winderp
+      SPRING_DATASOURCE_PASSWORD: winderp123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     depends_on:
-      eureka-server:
-        condition: service_started
-    restart: unless-stopped
+      postgres:
+        condition: service_healthy
+    networks:
+      - recrute_winderp-network
 
-  # ========================= AUTH SERVICE =========================
+  # ==================== AUTH SERVICE ====================
   auth-service:
-    build:
-      context: ./Authentification
+    build: ./Authentification
     container_name: winderp-auth
     ports:
       - "8087:8087"
-    networks:
-      - winderp-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8087
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: wafawafa
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
-      JWT_SECRET: TaCleTresSecreteAuMoins32Caracts
-      JWT_EXPIRATION: 86400000
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,metrics
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp_db
+      SPRING_DATASOURCE_USERNAME: winderp
+      SPRING_DATASOURCE_PASSWORD: winderp123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      JWT_SECRET: une_cle_secrete_pour_auth
+      JWT_EXPIRATION: "86400000"
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
-        condition: service_started
-    restart: unless-stopped
+    networks:
+      - recrute_winderp-network
 
-  # ========================= DASHBOARD SERVICE =========================
+  # ==================== DASHBOARD SERVICE ====================
   dashboard-service:
-    build:
-      context: ./dashbord-service
+    build: ./dashbord-service
     container_name: winderp-dashboard
     ports:
       - "8088:8088"
-    networks:
-      - winderp-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8088
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: wafawafa
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,metrics
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp_db
+      SPRING_DATASOURCE_USERNAME: winderp
+      SPRING_DATASOURCE_PASSWORD: winderp123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
-        condition: service_started
-    restart: unless-stopped
+    networks:
+      - recrute_winderp-network
 
-  # ========================= CANDIDATE SERVICE =========================
+  # ==================== CANDIDATE SERVICE ====================
   candidate-service:
-    build:
-      context: ./candidate-service
+    build: ./candidate-service
     container_name: winderp-candidate
     ports:
       - "8089:8089"
-    networks:
-      - winderp-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8089
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: wafawafa
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      SPRING_MAIL_HOST: smtp.gmail.com
-      SPRING_MAIL_PORT: 587
-      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
-      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      GEMINI_API_KEY: "dummy-key-for-testing"
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,metrics
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp_db
+      SPRING_DATASOURCE_USERNAME: winderp
+      SPRING_DATASOURCE_PASSWORD: winderp123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
-        condition: service_started
-    restart: unless-stopped
-
-  # ========================= NOTIFICATION SERVICE =========================
-  notification-service:
-    build:
-      context: ./notificationservice
-    container_name: winderp-notification
-    ports:
-      - "8090:8090"
     networks:
-      - winderp-network
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8090
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: wafawafa
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_started
-    restart: unless-stopped
+      - recrute_winderp-network
 
-  # ========================= INTERVIEW SERVICE =========================
+  # ==================== INTERVIEW SERVICE ====================
   interview-service:
-    build:
-      context: ./interview-service
+    build: ./interview-service
     container_name: winderp-interview
     ports:
       - "8091:8091"
-    networks:
-      - winderp-network
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8091
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: wafawafa
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8762/eureka/
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,metrics
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp_db
+      SPRING_DATASOURCE_USERNAME: winderp
+      SPRING_DATASOURCE_PASSWORD: winderp123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
     depends_on:
       postgres:
         condition: service_healthy
-      eureka-server:
-        condition: service_started
-    restart: unless-stopped
+    networks:
+      - recrute_winderp-network
 
-# ========================= NETWORK =========================
+  # ==================== NOTIFICATION SERVICE ====================
+  notification-service:
+    build: ./notificationservice
+    container_name: winderp-notification
+    ports:
+      - "8090:8090"
+    environment:
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,prometheus,metrics
+      MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+      MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED: "true"
+      EUREKA_CLIENT_ENABLED: "false"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/winderp_db
+      SPRING_DATASOURCE_USERNAME: winderp
+      SPRING_DATASOURCE_PASSWORD: winderp123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - recrute_winderp-network
+
+  # ==================== PROMETHEUS ====================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: winderp-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - recrute_winderp-network
+
+  # ==================== GRAFANA ====================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    networks:
+      - recrute_winderp-network
+
+  # ==================== CADVISOR (demandé par l'encadrant) ====================
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: winderp-cadvisor
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    networks:
+      - recrute_winderp-network
+
 networks:
-  winderp-network:
+  recrute_winderp-network:
     driver: bridge
 
-# ========================= VOLUME =========================
 volumes:
   postgres_data:

@@ -76,12 +76,12 @@ public class AIService {
                             ))
                             .build();
 
-                    System.out.println("🔄 Tentative " + attempt + " avec modèle : " + model);
+                    System.out.println("Tentative " + attempt + " avec modèle : " + model);
 
                     GenerateContentResponse response = client.models.generateContent(model, prompt, config);
 
                     String content = response.text().trim();
-                    System.out.println("📝 [" + model + "] Réponse brute : " + content);
+                    System.out.println(" [" + model + "] Réponse brute : " + content);
 
                     String jsonContent = extractJson(content);
                     JsonNode result = objectMapper.readTree(jsonContent);
@@ -95,12 +95,12 @@ public class AIService {
                     }
                     score = Math.max(0.0, Math.min(100.0, score));
 
-                    System.out.println("✅ [" + model + "] Succès → Score: " + score + " | Decision: " + decision + " | Raison: " + raison);
+                    System.out.println(" [" + model + "] Succès → Score: " + score + " | Decision: " + decision + " | Raison: " + raison);
 
                     return new AIResponse(score, decision);
 
                 } catch (Exception e) {
-                    System.err.println("❌ [" + model + "] Tentative " + attempt + "/3 échouée : " + e.getMessage());
+                    System.err.println(" [" + model + "] Tentative " + attempt + "/3 échouée : " + e.getMessage());
                     if (attempt < 3) {
                         try { Thread.sleep(1500L * attempt); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
                     }
@@ -108,21 +108,19 @@ public class AIService {
             }
         }
 
-        System.err.println("⚠️ Tous les modèles ont échoué → fallback EN_ATTENTE");
+        System.err.println("⚠ Tous les modèles ont échoué → fallback EN_ATTENTE");
         return new AIResponse(50.0, "EN_ATTENTE");
     }
 
-    /**
-     * Extraction JSON plus robuste (gère les réponses tronquées ou avec du texte parasite)
-     */
+
     private String extractJson(String text) {
-        // Cherche le premier { et le dernier }
+
         int start = text.indexOf('{');
         int end = text.lastIndexOf('}');
 
         if (start != -1 && end != -1 && end > start) {
             String jsonCandidate = text.substring(start, end + 1).trim();
-            // Si le JSON semble incomplet, on ajoute manuellement la fermeture
+
             if (!jsonCandidate.endsWith("}")) {
                 jsonCandidate += "}";
             }

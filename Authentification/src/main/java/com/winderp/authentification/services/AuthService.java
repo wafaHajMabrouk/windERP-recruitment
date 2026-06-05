@@ -1,7 +1,8 @@
 package com.winderp.authentification.services;
 
-import com.winderp.authentification.models.*;           // ← models (minuscule)
-import com.winderp.authentification.repository.UserRepository; // ← repository (minuscule)
+import com.winderp.authentification.models.Candidate;
+import com.winderp.authentification.models.User;
+import com.winderp.authentification.repository.UserRepository;
 import com.winderp.authentification.config.JwtUtil;
 import com.winderp.authentification.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -17,25 +18,15 @@ import java.util.Map;
 @Transactional
 public class AuthService {
 
-    // Constantes pour les statuts
-    private static final String STATUS_PENDING = "PENDING";
-    private static final String STATUS_APPROVED = "APPROVED";
-
-    // Constantes pour les rôles
-    private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_CANDIDATE = "CANDIDATE";
-    private static final String ROLE_RH = "RH";
-    private static final String ROLE_RECRUTEUR = "RECRUTEUR";
+    private static final String STATUS_APPROVED = "APPROVED"; // plus besoin d'attente admin
 
-    // Constantes pour les messages d'erreur
     private static final String ERROR_EMAIL_REQUIRED = "Email requis";
     private static final String ERROR_CREDENTIAL_REQUIRED = "Mot de passe requis";
     private static final String ERROR_INCOMPLETE_DATA = "Données d'inscription incomplètes";
     private static final String ERROR_EMAIL_ALREADY_USED = "Email déjà utilisé";
-    private static final String ERROR_INVALID_ROLE = "Rôle invalide: ";
     private static final String ERROR_USER_NOT_FOUND = "Utilisateur non trouvé";
     private static final String ERROR_INVALID_CREDENTIAL = "Mot de passe incorrect";
-    private static final String ERROR_ACCOUNT_NOT_APPROVED = "Compte non validé par admin";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -45,17 +36,21 @@ public class AuthService {
         checkEmailNotExists(data.getEmail());
 
         String encodedPassword = passwordEncoder.encode(data.getPassword());
-        String role = data.getRole().toUpperCase();
-
-        User userToSave = createUserByRole(data, encodedPassword, role);
-
-        User savedUser = userRepository.save(userToSave);
+        // Seul le rôle CANDIDATE est accepté
+        Candidate candidate = createCandidate(data, encodedPassword);
+        User savedUser = userRepository.save(candidate);
         return buildUserResponse(savedUser);
     }
 
     private void validateRegistrationData(User data) {
-        if (data == null || data.getEmail() == null || data.getPassword() == null || data.getRole() == null) {
+        if (data == null || data.getEmail() == null || data.getPassword() == null) {
             throw new BusinessException(ERROR_INCOMPLETE_DATA);
+        }
+        // Vérification des champs obligatoires pour un candidat
+        if (data.getNom() == null || data.getPrenom() == null ||
+                data.getAdresse() == null || data.getCompetences() == null ||
+                data.getNiveauExperience() == null) {
+            throw new BusinessException("Tous les champs candidat sont obligatoires (nom, prénom, adresse, compétences, niveau d'expérience)");
         }
     }
 
@@ -65,66 +60,18 @@ public class AuthService {
         }
     }
 
-    private User createUserByRole(User data, String encodedPassword, String role) {
-        switch (role) {
-            case ROLE_ADMIN:
-                return createAdmin(data, encodedPassword, role);
-            case ROLE_CANDIDATE:
-                return createCandidate(data, encodedPassword, role);
-            case ROLE_RH:
-                return createRh(data, encodedPassword, role);
-            case ROLE_RECRUTEUR:
-                return createRecruteur(data, encodedPassword, role);
-            default:
-                throw new BusinessException(ERROR_INVALID_ROLE + role);
-        }
-    }
-
-    private Admin createAdmin(User data, String encodedPassword, String role) {
-        Admin admin = new Admin();
-        if (data.getDepartement() != null) {
-            admin.setDepartement(data.getDepartement());
-        }
-        copyCommon(data, admin, encodedPassword, role);
-        admin.setStatus(STATUS_APPROVED);
-        return admin;
-    }
-
-    private Candidate createCandidate(User data, String encodedPassword, String role) {
+    private Candidate createCandidate(User data, String encodedPassword) {
         Candidate candidate = new Candidate();
-        if (data.getAdresse() != null) candidate.setAdresse(data.getAdresse());
-        if (data.getCompetences() != null) candidate.setCompetences(data.getCompetences());
-        if (data.getNiveauExperience() != null) candidate.setNiveauExperience(data.getNiveauExperience());
-        copyCommon(data, candidate, encodedPassword, role);
-        candidate.setStatus(STATUS_PENDING);
+        candidate.setEmail(data.getEmail());
+        candidate.setNom(data.getNom());
+        candidate.setPrenom(data.getPrenom());
+        candidate.setPassword(encodedPassword);
+        candidate.setRole(ROLE_CANDIDATE);
+        candidate.setStatus(STATUS_APPROVED); // validation immédiate
+        candidate.setAdresse(data.getAdresse());
+        candidate.setCompetences(data.getCompetences());
+        candidate.setNiveauExperience(data.getNiveauExperience());
         return candidate;
-    }
-
-    private RH createRh(User data, String encodedPassword, String role) {
-        RH rh = new RH();
-        if (data.getDepartement() != null) rh.setDepartement(data.getDepartement());
-        if (data.getNiveauResponsabilite() != null) rh.setNiveauResponsabilite(data.getNiveauResponsabilite());
-        copyCommon(data, rh, encodedPassword, role);
-        rh.setStatus(STATUS_PENDING);
-        return rh;
-    }
-
-    private Recruteur createRecruteur(User data, String encodedPassword, String role) {
-        Recruteur recruteur = new Recruteur();
-        if (data.getEntreprise() != null) recruteur.setEntreprise(data.getEntreprise());
-        if (data.getPoste() != null) recruteur.setPoste(data.getPoste());
-        if (data.getSiteEntreprise() != null) recruteur.setSiteEntreprise(data.getSiteEntreprise());
-        copyCommon(data, recruteur, encodedPassword, role);
-        recruteur.setStatus(STATUS_PENDING);
-        return recruteur;
-    }
-
-    private void copyCommon(User source, User target, String password, String role) {
-        target.setEmail(source.getEmail());
-        target.setNom(source.getNom());
-        target.setPrenom(source.getPrenom());
-        target.setPassword(password);
-        target.setRole(role);
     }
 
     public Map<String, Object> login(String email, String password) {
@@ -134,8 +81,8 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(ERROR_USER_NOT_FOUND));
 
         validatePassword(password, user);
-        validateAccountStatus(user);
 
+        // Plus de vérification de statut : tous les comptes sont directement APPROVED
         String token = JwtUtil.generateToken(user.getEmail(), user.getRole());
 
         return buildLoginResponse(token, user);
@@ -153,12 +100,6 @@ public class AuthService {
     private void validatePassword(String password, User user) {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BusinessException(ERROR_INVALID_CREDENTIAL);
-        }
-    }
-
-    private void validateAccountStatus(User user) {
-        if (!ROLE_ADMIN.equals(user.getRole()) && !STATUS_APPROVED.equals(user.getStatus())) {
-            throw new BusinessException(ERROR_ACCOUNT_NOT_APPROVED);
         }
     }
 

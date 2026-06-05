@@ -22,7 +22,7 @@ public class CVController {
     private final CVService cvService;
     private final CandidatureService candidatureService;
 
-    // UPLOAD
+
     @PostMapping("/upload/{candidatureId}")
     public ResponseEntity<?> upload(@PathVariable Long candidatureId,
                                     @RequestParam("file") MultipartFile file) throws IOException {
@@ -38,14 +38,14 @@ public class CVController {
         return ResponseEntity.ok(cv);
     }
 
-    // DOWNLOAD
+
     @GetMapping("/download/by-candidature/{candidatureId}")
     public ResponseEntity<byte[]> download(@PathVariable Long candidatureId) {
 
         CV cv = cvService.getByCandidatureId(candidatureId);
 
         if (cv == null || cv.getData() == null) {
-            return ResponseEntity.notFound().build(); // 🔥 ton 404 actuel
+            return ResponseEntity.notFound().build();
         }
 
         return ResponseEntity.ok()

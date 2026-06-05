@@ -19,18 +19,14 @@ public class CVService {
 
     private final CvRepository cvRepository;
 
-    // =========================
-    // GET CV
-    // =========================
+
     @Transactional(readOnly = true)
     public CV getByCandidatureId(Long candidatureId) {
         return cvRepository.findByCandidatureId(candidatureId)
                 .orElse(null);
     }
 
-    // =========================
-    // UPLOAD CV (PDF)
-    // =========================
+
     public CV uploadCV(MultipartFile file, Candidature candidature) throws IOException {
 
         if (file == null || file.isEmpty()) {
@@ -48,16 +44,12 @@ public class CVService {
         return cvRepository.save(cv);
     }
 
-    // =========================
-    // DELETE CV
-    // =========================
+
     public void delete(Long id) {
         cvRepository.deleteById(id);
     }
 
-    // =========================
-    // PDF TEXT EXTRACTION
-    // =========================
+
     private String extractText(MultipartFile file) {
         try (PDDocument doc = Loader.loadPDF(file.getBytes())) {
             return new PDFTextStripper().getText(doc);
@@ -78,7 +70,7 @@ public class CVService {
         cv.setNomFichier(file.getOriginalFilename());
         cv.setData(file.getBytes());
 
-        // 🔥 FIX PDFBOX SAFE VERSION
+
         try (PDDocument document = Loader.loadPDF(file.getBytes())) {
             PDFTextStripper stripper = new PDFTextStripper();
             cv.setContenuTexte(stripper.getText(document));

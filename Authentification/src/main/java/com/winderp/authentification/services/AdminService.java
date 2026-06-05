@@ -15,24 +15,24 @@ public class AdminService {
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // CREATE
+
     public Admin create(Admin admin) {
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         return adminRepository.save(admin);
     }
 
-    // READ ALL
+
     public List<Admin> getAll() {
         return adminRepository.findAll();
     }
 
-    // READ BY ID
+
     public Admin getById(Long id) {
         return adminRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Admin not found with id: " + id));
     }
 
-    // UPDATE
+
     public Admin update(Long id, Admin data) {
         Admin admin = getById(id);
         if (data.getNom() != null) admin.setNom(data.getNom());
@@ -44,12 +44,12 @@ public class AdminService {
         return adminRepository.save(admin);
     }
 
-    // DELETE
+
     public void delete(Long id) {
         adminRepository.deleteById(id);
     }
 
-    // CHECK EXISTS
+
     public boolean existsById(Long id) {
         return adminRepository.existsById(id);
     }

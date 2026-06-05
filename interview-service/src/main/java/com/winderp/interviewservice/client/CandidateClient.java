@@ -22,4 +22,6 @@ public interface CandidateClient {
 
     @GetMapping("/api/candidatures/{id}/isAccepted")
     Boolean isCandidatureAccepted(@PathVariable Long id);
+    @GetMapping("/api/candidatures/{id}/offreTitre")
+    String getOffreTitreByCandidatureId(@PathVariable Long id);
 }

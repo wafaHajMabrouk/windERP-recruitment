@@ -15,24 +15,24 @@ public class RHService {
     private final RHRepository rhRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // CREATE
+
     public RH create(RH rh) {
         rh.setPassword(passwordEncoder.encode(rh.getPassword()));
         return rhRepository.save(rh);
     }
 
-    // READ ALL
+
     public List<RH> getAll() {
         return rhRepository.findAll();
     }
 
-    // READ BY ID
+
     public RH getById(Long id) {
         return rhRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("RH not found with id: " + id));
     }
 
-    // UPDATE
+
     public RH update(Long id, RH data) {
         RH rh = getById(id);
         if (data.getNom() != null) rh.setNom(data.getNom());
@@ -46,12 +46,12 @@ public class RHService {
         return rhRepository.save(rh);
     }
 
-    // DELETE
+
     public void delete(Long id) {
         rhRepository.deleteById(id);
     }
 
-    // EXISTS
+
     public boolean existsById(Long id) {
         return rhRepository.existsById(id);
     }
