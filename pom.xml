@@ -56,7 +56,7 @@
         <postgresql.version>42.7.2</postgresql.version>
 
         <!-- JWT -->
-        <jjwt.version>0.11.5</jjwt.version>
+        <jjwt.version>0.13.0</jjwt.version>
 
         <!-- Tests -->
         <testcontainers.version>1.19.3</testcontainers.version>
