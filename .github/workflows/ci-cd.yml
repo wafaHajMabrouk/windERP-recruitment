@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -176,7 +176,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -208,7 +208,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -242,7 +242,7 @@ jobs:
     needs: [test-authentification, test-candidate-service, test-interview-service, test-notification-service, test-dashboard-service, test-eureka-server, test-api-gateway]
     if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -274,7 +274,7 @@ jobs:
     needs: package-all
     if: always()
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Set up JDK 17
@@ -297,7 +297,7 @@ jobs:
     needs: package-all
     if: false  # ← DÉSACTIVÉ temporairement
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Docker build disabled
         run: echo "Docker build is disabled"
 
